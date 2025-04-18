@@ -58,12 +58,11 @@ const Marketplace = () => {
     // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      results = results.filter(listing => {
-        const crop = listing?.cropType?.toLowerCase() || '';
-        const farmer = listing?.farmerName?.toLowerCase() || '';
-        const location = listing?.location?.toLowerCase() || '';
-        return crop.includes(query) || farmer.includes(query) || location.includes(query);
-      });
+      results = results.filter(listing => 
+        listing.cropType.toLowerCase().includes(query) || 
+        listing.farmerName.toLowerCase().includes(query) ||
+        listing.location.toLowerCase().includes(query)
+      );
       
     }
     
