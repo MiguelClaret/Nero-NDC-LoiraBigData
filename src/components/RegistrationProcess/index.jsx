@@ -17,6 +17,7 @@ const RegistrationProcess = ({ setCurrentPage, isLoggedIn, setIsLoggedIn }) => {
     quantity: '',
     harvestDate: '',
     location: '',
+    area: '',  // Campo adicional para área da fazenda
     sustainablePractices: []
   });
   const [registrationStatus, setRegistrationStatus] = useState(null); // 'pending', 'approved', 'rejected'
@@ -98,6 +99,29 @@ const RegistrationProcess = ({ setCurrentPage, isLoggedIn, setIsLoggedIn }) => {
     });
   };
   
+  // Calcular os créditos de carbono com base nas práticas sustentáveis
+  const calculateCarbonCredits = () => {
+    // Base de crédito por prática (toneladas por hectare)
+    const practiceCredits = {
+      organic: 1.2,
+      conservation: 0.8,
+      rotation: 0.6,
+      water: 0.4
+    };
+    
+    // Calcular com base nas práticas e área da fazenda
+    let totalCredits = 0;
+    formData.sustainablePractices.forEach(practice => {
+      if (practiceCredits[practice]) {
+        totalCredits += practiceCredits[practice];
+      }
+    });
+    
+    // Multiplicar pela área total da fazenda
+    const area = parseFloat(formData.area) || 1; // Fallback para 1 se não houver área
+    return (totalCredits * area).toFixed(2);
+  };
+  
   return (
     <div className="max-w-4xl mx-auto py-8">
       <h1 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center animate-fadeIn">
@@ -136,7 +160,9 @@ const RegistrationProcess = ({ setCurrentPage, isLoggedIn, setIsLoggedIn }) => {
         {currentStep === 3 && (
           <MarketplaceStatus 
             formData={formData} 
-            salesProgress={salesProgress} 
+            salesProgress={salesProgress}
+            carbonCredits={calculateCarbonCredits()}
+            setCurrentPage={setCurrentPage}
           />
         )}
       </div>

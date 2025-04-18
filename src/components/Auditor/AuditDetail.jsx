@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Calendar, MapPin, User, Leaf, FileText, Image, Clipboard, Check, X, Trash } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Calendar, MapPin, User, Leaf, FileText, Image, Clipboard, Check, X, Trash, Calculator } from 'lucide-react';
 
 const DocumentItem = ({ document }) => {
   return (
@@ -33,13 +33,24 @@ const PracticeItem = ({ practice }) => {
     water: 'Efficient irrigation systems in place. Reduces water use and related energy consumption.'
   };
   
+  // Crédito de carbono estimado para cada prática (toneladas por hectare)
+  const practiceCarbonCredits = {
+    organic: 1.2,
+    conservation: 0.8,
+    rotation: 0.6,
+    water: 0.4
+  };
+  
   return (
     <div className="border border-gray-200 rounded-lg p-4">
       <div className="flex items-center mb-2">
         <Leaf className="h-5 w-5 text-green-600 mr-2" />
         <h4 className="text-md font-medium text-gray-800">{practiceLabels[practice]}</h4>
       </div>
-      <p className="text-sm text-gray-600">{practiceDescriptions[practice]}</p>
+      <p className="text-sm text-gray-600 mb-2">{practiceDescriptions[practice]}</p>
+      <div className="bg-green-50 p-2 rounded text-xs text-green-700">
+        Estimated impact: {practiceCarbonCredits[practice]} TCO2e per hectare
+      </div>
     </div>
   );
 };
@@ -49,6 +60,33 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
   const [carbonEstimate, setCarbonEstimate] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [automaticEstimate, setAutomaticEstimate] = useState(0);
+  
+  // Calcular estimativa automática baseada nas práticas sustentáveis e área
+  useEffect(() => {
+    if (audit) {
+      // Base de crédito por prática (toneladas por hectare)
+      const practiceCredits = {
+        organic: 1.2,
+        conservation: 0.8,
+        rotation: 0.6,
+        water: 0.4
+      };
+      
+      // Calcular com base nas práticas e área da fazenda
+      let totalCredits = 0;
+      audit.sustainablePractices.forEach(practice => {
+        if (practiceCredits[practice]) {
+          totalCredits += practiceCredits[practice];
+        }
+      });
+      
+      // Multiplicar pela área total da fazenda
+      const estimatedCredits = (totalCredits * audit.area).toFixed(2);
+      setAutomaticEstimate(estimatedCredits);
+      setCarbonEstimate(estimatedCredits);
+    }
+  }, [audit]);
   
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -92,6 +130,13 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
     
     onReject(audit.id, comments);
   };
+  
+  const calculateCarbonCredits = () => {
+    const calculatedEstimate = automaticEstimate;
+    setCarbonEstimate(calculatedEstimate);
+  };
+  
+  if (!audit) return null;
   
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
@@ -153,15 +198,29 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Estimated Carbon Credits (TCO2e)
             </label>
-            <input 
-              type="number"
-              step="0.01"
-              value={carbonEstimate}
-              onChange={(e) => setCarbonEstimate(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              placeholder="e.g. 5.25"
-              required
-            />
+            <div className="flex items-center space-x-2">
+              <input 
+                type="number"
+                step="0.01"
+                value={carbonEstimate}
+                onChange={(e) => setCarbonEstimate(e.target.value)}
+                className="flex-grow p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                placeholder="e.g. 5.25"
+                required
+              />
+              <button
+                type="button"
+                onClick={calculateCarbonCredits}
+                className="bg-green-100 text-green-700 p-2 rounded-md hover:bg-green-200 transition-colors"
+                title="Calculate based on practices and area"
+              >
+                <Calculator className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="text-xs text-green-600 mt-1">
+              Automatic estimate: {automaticEstimate} TCO2e 
+              (based on {audit.area} hectares and {audit.sustainablePractices.length} practices)
+            </p>
           </div>
           
           <div className="mb-4">
@@ -266,7 +325,7 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
               
               <div>
                 <p className="text-sm text-gray-500">Expected Yield</p>
-                <p className="text-sm font-medium text-gray-700">{audit.quantity / audit.area} kg/ha</p>
+                <p className="text-sm font-medium text-gray-700">{(audit.quantity / audit.area).toFixed(2)} kg/ha</p>
               </div>
             </div>
           </div>

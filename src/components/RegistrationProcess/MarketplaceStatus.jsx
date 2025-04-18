@@ -1,33 +1,44 @@
 import React from 'react';
-import { Check, Archive, ClipboardCheck, FileText, DollarSign, Leaf, Award } from 'lucide-react';
+import { Check, Archive, ClipboardCheck, FileText, DollarSign, Leaf, Award, MapPin, Calendar, TrendingUp } from 'lucide-react';
 
-const MarketplaceStatus = ({ formData, salesProgress }) => {
-  // Calculate carbon credits based on sustainable practices
-  const getCarbonCredits = () => {
-    const practices = formData.sustainablePractices || [];
-    // Each practice contributes to carbon credits
-    const baseCredits = 0.5; // Base credits per ton
-    const practiceMultipliers = {
-      organic: 0.3,
-      conservation: 0.2,
-      rotation: 0.2,
-      water: 0.1
-    };
-    
-    let multiplier = 1;
-    practices.forEach(practice => {
-      if (practiceMultipliers[practice]) {
-        multiplier += practiceMultipliers[practice];
-      }
-    });
-    
-    const quantity = formData.quantity || 1000;
-    // Calculate tons of CO2 equivalent (TCO2e)
-    return (quantity / 1000 * baseCredits * multiplier).toFixed(2);
+const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentPage }) => {
+  // Format the date to be more readable
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
   
-  const carbonCredits = getCarbonCredits();
-  
+  // Generate sustainable practices badges
+  const renderPractices = (practices) => {
+    const practiceLabels = {
+      organic: 'Organic Farming',
+      conservation: 'Conservation Tillage',
+      rotation: 'Crop Rotation',
+      water: 'Water Conservation'
+    };
+    
+    return (
+      <div className="flex flex-wrap gap-1 mt-2">
+        {practices.map(practice => (
+          <span 
+            key={practice} 
+            className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-100 text-green-800"
+          >
+            <Leaf className="h-2.5 w-2.5 mr-0.5" />
+            {practiceLabels[practice]}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  // Handle navigation to marketplace
+  const handleGoToMarketplace = () => {
+    if (setCurrentPage) {
+      setCurrentPage('marketplace');
+    }
+  };
+
   return (
     <div className="animate-fadeIn">
       <h2 className="text-xl font-semibold text-green-800 mb-4">Marketplace Status</h2>
@@ -55,8 +66,16 @@ const MarketplaceStatus = ({ formData, salesProgress }) => {
               <span className="text-sm font-medium text-gray-700">Crop Token</span>
             </div>
             <p className="text-xs text-gray-600">
-              {formData.quantity || '1000'}kg of {formData.cropType ? formData.cropType.charAt(0).toUpperCase() + formData.cropType.slice(1) : 'Coffee'}
+              {formData.quantity || '1000'}kg of {formData.cropType || 'Coffee'}
             </p>
+            <div className="flex items-center text-xs text-gray-500 mt-1">
+              <MapPin className="h-3 w-3 mr-1" />
+              {formData.location || 'Brazil'}
+            </div>
+            <div className="flex items-center text-xs text-gray-500 mt-1">
+              <Calendar className="h-3 w-3 mr-1" />
+              Due: {formatDate(formData.harvestDate || '2025-10-15')}
+            </div>
             <div className="mt-2 text-xs bg-white rounded p-1 text-center text-gray-600 border border-gray-200">
               Token ID: #CF{Math.floor(Math.random() * 10000)}
             </div>
@@ -68,7 +87,10 @@ const MarketplaceStatus = ({ formData, salesProgress }) => {
               <span className="text-sm font-medium text-gray-700">Carbon Credit</span>
             </div>
             <p className="text-xs text-gray-600">
-              {carbonCredits} TCO2e from {formData.sustainablePractices?.length || 0} sustainable practices
+              {carbonCredits} TCO2e from {formData.area || '1'} hectares
+            </p>
+            <p className="text-xs text-gray-600">
+              {formData.sustainablePractices?.length || 0} sustainable practices implemented
             </p>
             <div className="mt-2 text-xs bg-white rounded p-1 text-center text-gray-600 border border-gray-200">
               Token ID: #CC{Math.floor(Math.random() * 10000)}
@@ -108,10 +130,10 @@ const MarketplaceStatus = ({ formData, salesProgress }) => {
               </div>
               <div className="ml-4">
                 <h4 className="text-lg font-semibold text-gray-800">
-                  {formData.cropType ? formData.cropType.charAt(0).toUpperCase() + formData.cropType.slice(1) : 'Coffee'} Harvest {new Date().getFullYear()}
+                  {formData.cropType || 'Coffee'} Harvest {new Date().getFullYear()}
                 </h4>
                 <p className="text-sm text-gray-500">
-                  {formData.quantity || '1000'} kg - Due on {formData.harvestDate || '2025-10-15'}
+                  {formData.quantity || '1000'} kg - Due on {formatDate(formData.harvestDate || '2025-10-15')}
                 </p>
                 <div className="flex mt-2">
                   <span className="text-xs bg-green-50 rounded-full px-2 py-1 text-green-700 mr-2 flex items-center">
@@ -141,7 +163,7 @@ const MarketplaceStatus = ({ formData, salesProgress }) => {
       </div>
       
       <div className="mt-8">
-        <div className="flex justify-between gap-4">
+        <div className="flex flex-col md:flex-row gap-4">
           <button
             className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-medium transition duration-300 flex items-center justify-center transform hover:scale-105"
             onClick={() => window.open('#', '_blank')}
@@ -155,6 +177,17 @@ const MarketplaceStatus = ({ formData, salesProgress }) => {
           >
             <DollarSign className="mr-2 h-5 w-5" />
             Track Revenue
+          </button>
+        </div>
+        
+        {/* Novo botão para acessar o marketplace */}
+        <div className="mt-6">
+          <button
+            onClick={handleGoToMarketplace}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-md font-medium transition duration-300 flex items-center justify-center shadow-md"
+          >
+            <TrendingUp className="mr-2 h-5 w-5" />
+            Go to Marketplace to Explore More Investment Opportunities
           </button>
         </div>
         

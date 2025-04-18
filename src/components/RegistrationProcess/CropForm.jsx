@@ -7,7 +7,8 @@ import {
   Droplets, 
   Sprout, 
   Recycle, 
-  Wind 
+  Wind,
+  Info
 } from 'lucide-react';
 
 const SustainablePracticeCard = ({ id, title, description, icon: Icon, isSelected, onChange }) => {
@@ -45,6 +46,7 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
   
   // Form validation state
   const [dateError, setDateError] = useState('');
+  const [areaError, setAreaError] = useState('');
   
   // Handle card selection
   const handlePracticeSelection = (practiceId, isSelected) => {
@@ -87,12 +89,26 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
     handleInputChange(e);
   };
   
-  // Override submit to check date is valid
+  // Validate farm area is a positive number
+  const validateArea = (e) => {
+    const area = parseFloat(e.target.value);
+    
+    if (isNaN(area) || area <= 0) {
+      setAreaError('Farm area must be a positive number');
+    } else {
+      setAreaError('');
+    }
+    
+    // Still update the form data
+    handleInputChange(e);
+  };
+  
+  // Override submit to check validation
   const onSubmit = (e) => {
     e.preventDefault();
     
-    // Check date is valid before submitting
-    if (dateError) {
+    // Check validation errors before submitting
+    if (dateError || areaError) {
       return;
     }
     
@@ -150,11 +166,11 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
               required
             >
               <option value="">Select crop type</option>
-              <option value="coffee">Coffee</option>
-              <option value="soybean">Soybean</option>
-              <option value="corn">Corn</option>
-              <option value="wheat">Wheat</option>
-              <option value="rice">Rice</option>
+              <option value="Coffee">Coffee</option>
+              <option value="Soybean">Soybean</option>
+              <option value="Corn">Corn</option>
+              <option value="Wheat">Wheat</option>
+              <option value="Rice">Rice</option>
             </select>
           </div>
           
@@ -171,6 +187,30 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
               placeholder="e.g. 1000"
               required
             />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              <Info className="h-4 w-4 inline mr-1 text-green-600" />
+              Farm Area (hectares)
+            </label>
+            <input 
+              type="number"
+              name="area"
+              value={formData.area}
+              onChange={validateArea}
+              className={`w-full p-2 bg-white text-gray-800 border ${areaError ? 'border-red-500' : 'border-gray-300'} rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+              placeholder="e.g. 5.5"
+              step="0.1"
+              min="0.1"
+              required
+            />
+            {areaError && (
+              <p className="text-red-500 text-xs mt-1">{areaError}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              This information is needed to calculate carbon credits
+            </p>
           </div>
           
           <div>
@@ -234,7 +274,7 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
             <button 
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md font-medium transition duration-300 flex items-center justify-center"
-              disabled={!!dateError}
+              disabled={!!dateError || !!areaError}
             >
               Register Crop
               <ArrowRight className="ml-2 h-5 w-5 animate-pulse" />
