@@ -6,6 +6,7 @@ import RegistrationProcess from './components/RegistrationProcess';
 import UserTypeSelection from './components/UserTypeSection';
 import Marketplace from './components/Marketplace/Index';
 import AuditorDashboard from './components/Auditor';
+import LandingPage from './landingPage';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('home');
@@ -29,6 +30,8 @@ const App = () => {
         return <Marketplace />;
       case 'auditor':
         return <AuditorDashboard />;
+      case 'landing':
+        return <LandingPage />;
       default:
         return <HeroSection setCurrentPage={setCurrentPage} />;
     }
