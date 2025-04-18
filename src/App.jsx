@@ -4,7 +4,7 @@ import Footer from './components/Footer';
 import HeroSection from './components/HeroSection';
 import RegistrationProcess from './components/RegistrationProcess';
 import UserTypeSelection from './components/UserTypeSection';
-import Marketplace from './components/Marketplace';
+import Marketplace from './components/Marketplace/Index';
 import AuditorDashboard from './components/Auditor';
 
 const App = () => {
