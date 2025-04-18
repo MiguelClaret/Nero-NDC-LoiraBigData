@@ -5,6 +5,7 @@ import HeroSection from './components/HeroSection';
 import RegistrationProcess from './components/RegistrationProcess';
 import UserTypeSelection from './components/UserTypeSection';
 import Marketplace from './components/Marketplace';
+import AuditorDashboard from './components/Auditor';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('home');
@@ -26,6 +27,8 @@ const App = () => {
         return <RegistrationProcess setCurrentPage={setCurrentPage} isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />;
       case 'marketplace':
         return <Marketplace />;
+      case 'auditor':
+        return <AuditorDashboard />;
       default:
         return <HeroSection setCurrentPage={setCurrentPage} />;
     }

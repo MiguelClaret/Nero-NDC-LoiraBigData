@@ -4,6 +4,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Adicione estas classes ao seu index.css */
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .grid-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 :root {
   /* Primary color - Green */
   --color-primary-light: #4CAF50;

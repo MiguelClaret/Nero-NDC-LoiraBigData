@@ -31,8 +31,7 @@ const UserTypeSelection = ({ setUserType, setCurrentPage }) => {
 
   const handleAuditorClick = () => {
     setUserType('auditor');
-    // For now, we'll just show a message that this is coming soon
-    alert('Auditor portal coming soon!');
+    setCurrentPage('auditor');
   };
 
   return (
