@@ -10,6 +10,7 @@
     "caniuse-lite": "^1.0.30001714",
     "electron-to-chromium": "^1.5.138",
     "escalade": "^3.2.0",
+    "ethers": "^6.13.5",
     "fraction.js": "^4.3.7",
     "lucide-react": "^0.288.0",
     "nanoid": "^3.3.11",
@@ -22,7 +23,9 @@
     "react-dom": "^18.2.0",
     "source-map-js": "^1.2.1",
     "tailwindcss": "^4.1.4",
-    "update-browserslist-db": "^1.1.3"
+    "update-browserslist-db": "^1.1.3",
+    "userop": "^0.4.0-beta.5",
+    "viem": "^2.27.2"
   },
   "scripts": {
     "dev": "vite",
