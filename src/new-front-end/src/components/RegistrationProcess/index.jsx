@@ -4,6 +4,8 @@ import CropForm from './CropForm';
 import LoginForm from './LoginForm';
 import VerificationStatus from './VerificationStatus';
 import MarketplaceStatus from './MarketplaceStatus';
+import { createHarvest } from '../../hooks/useHarvestManager'
+
 
 const RegistrationProcess = ({ setCurrentPage, isLoggedIn, setIsLoggedIn }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -41,14 +43,32 @@ const RegistrationProcess = ({ setCurrentPage, isLoggedIn, setIsLoggedIn }) => {
   };
   
   // Function to handle form submission for step 1
-  const handleStepOneSubmit = (e) => {
-    e.preventDefault();
-    // In a real app, you'd validate the form here
-    
-    // Show login form after submission
-    setShowLogin(true);
-  };
+  const handleStepOneSubmit = async () => {
+    try {
+      const receipt = await createHarvest({
+        crop: formData.cropType,
+        quantity: Number(formData.quantity),
+        price: Math.floor(1 / 0.000132), // Preço fictício por enquanto
+        deliveryDate: new Date(formData.harvestDate).getTime(),
+        doc: formData.location,
+      });
   
+      console.log("✅ Transação confirmada:", receipt);
+  
+      setShowLogin(true); // avança para login
+  
+    } catch (error) {
+      console.error("❌ Erro ao registrar safra:", {
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      });
+  
+      alert("Erro ao registrar safra. Veja o console.");
+    }
+  };
+
+
   // Continue to verification after login
   useEffect(() => {
     if (isLoggedIn && showLogin === false && currentStep === 1) {
