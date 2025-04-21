@@ -1,12 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Search, Filter, ChevronDown, ChevronUp, Leaf, Info } from "lucide-react"
-import { Link } from "react-router-dom"
-import FiltersPanel from "./FiltersPanel"
-import CropCard from "./CropCard"
-import PurchaseModal from "./PurchaseModal"
-import { mockListings } from "./mockData"
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  Leaf,
+  Info,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import FiltersPanel from "./FiltersPanel";
+import CropCard from "./CropCard";
+import PurchaseModal from "./PurchaseModal";
+import { mockListings } from "./mockData";
 
 // Define the RefreshCw component once, at the top
 const RefreshCw = (props) => {
@@ -28,115 +35,121 @@ const RefreshCw = (props) => {
       <path d="M3 22v-6h6"></path>
       <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
     </svg>
-  )
-}
+  );
+};
 
 const Marketplace = () => {
-  const [listings, setListings] = useState([])
-  const [filteredListings, setFilteredListings] = useState([])
-  const [showFilters, setShowFilters] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [sortOrder, setSortOrder] = useState("default")
-  const [selectedListing, setSelectedListing] = useState(null)
-  const [showPurchaseModal, setShowPurchaseModal] = useState(false)
+  const [listings, setListings] = useState([]);
+  const [filteredListings, setFilteredListings] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState("default");
+  const [selectedListing, setSelectedListing] = useState(null);
+  const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [filters, setFilters] = useState({
     minRating: 0,
     sustainablePractices: [],
     harvestDateBefore: null,
     cropTypes: [],
-  })
+  });
 
   // Load mock data with a simulated delay to show loading state
   useEffect(() => {
-    setIsLoading(true)
+    setIsLoading(true);
     setTimeout(() => {
-      setListings(mockListings)
-      setFilteredListings(mockListings)
-      setIsLoading(false)
-    }, 800)
-  }, [])
+      setListings(mockListings);
+      setFilteredListings(mockListings);
+      setIsLoading(false);
+    }, 800);
+  }, []);
 
   // Apply filters and search
   useEffect(() => {
-    let results = [...listings]
+    let results = [...listings];
 
     // Apply search query
     if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       results = results.filter(
         (listing) =>
           listing.cropType.toLowerCase().includes(query) ||
           listing.farmerName.toLowerCase().includes(query) ||
-          listing.location.toLowerCase().includes(query),
-      )
+          listing.location.toLowerCase().includes(query)
+      );
     }
 
     // Apply rating filter
     if (filters.minRating > 0) {
-      results = results.filter((listing) => listing.farmerRating >= filters.minRating)
+      results = results.filter(
+        (listing) => listing.farmerRating >= filters.minRating
+      );
     }
 
     // Apply sustainable practices filter
     if (filters.sustainablePractices.length > 0) {
       results = results.filter((listing) =>
-        filters.sustainablePractices.every((practice) => listing.sustainablePractices.includes(practice)),
-      )
+        filters.sustainablePractices.every((practice) =>
+          listing.sustainablePractices.includes(practice)
+        )
+      );
     }
 
     // Apply crop type filter
     if (filters.cropTypes.length > 0) {
-      results = results.filter((listing) => filters.cropTypes.includes(listing.cropType))
+      results = results.filter((listing) =>
+        filters.cropTypes.includes(listing.cropType)
+      );
     }
 
     // Apply harvest date filter
     if (filters.harvestDateBefore) {
-      const targetDate = new Date(filters.harvestDateBefore)
+      const targetDate = new Date(filters.harvestDateBefore);
       results = results.filter((listing) => {
-        const harvestDate = new Date(listing.harvestDate)
-        return harvestDate <= targetDate
-      })
+        const harvestDate = new Date(listing.harvestDate);
+        return harvestDate <= targetDate;
+      });
     }
 
     // Apply sorting
     if (sortOrder === "price-low") {
-      results.sort((a, b) => a.pricePerKg - b.pricePerKg)
+      results.sort((a, b) => a.pricePerKg - b.pricePerKg);
     } else if (sortOrder === "price-high") {
-      results.sort((a, b) => b.pricePerKg - a.pricePerKg)
+      results.sort((a, b) => b.pricePerKg - a.pricePerKg);
     } else if (sortOrder === "rating") {
-      results.sort((a, b) => b.farmerRating - a.farmerRating)
+      results.sort((a, b) => b.farmerRating - a.farmerRating);
     } else if (sortOrder === "carbon") {
-      results.sort((a, b) => b.carbonCredits - a.carbonCredits)
+      results.sort((a, b) => b.carbonCredits - a.carbonCredits);
     }
 
-    setFilteredListings(results)
-  }, [searchQuery, filters, listings, sortOrder])
+    setFilteredListings(results);
+  }, [searchQuery, filters, listings, sortOrder]);
 
   const toggleFilters = () => {
-    setShowFilters(!showFilters)
-  }
+    setShowFilters(!showFilters);
+  };
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value)
-  }
+    setSearchQuery(e.target.value);
+  };
 
   // Function to handle investment button click
   const handleInvestClick = (listing) => {
-    setSelectedListing(listing)
-    setShowPurchaseModal(true)
-  }
+    setSelectedListing(listing);
+    setShowPurchaseModal(true);
+  };
 
   // Function to handle purchase confirmation
   const handlePurchaseConfirm = () => {
     // This would typically involve blockchain transactions
-    console.log("Purchase confirmed for:", selectedListing)
+    console.log("Purchase confirmed for:", selectedListing);
     // Further processing would happen here
-  }
+  };
 
   // Function to add staggered animation delay
   const getAnimationDelay = (index) => {
-    return `${index * 50}ms`
-  }
+    return `${index * 50}ms`;
+  };
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 bg-slate-100 min-h-screen">
@@ -158,8 +171,9 @@ const Marketplace = () => {
         <div className="flex items-start gap-2">
           <Info className="h-5 w-5 text-green-600 flex-shrink-0 mt-1" />
           <p className="text-gray-700 mb-6">
-            Browse sustainable farming opportunities. Each listing includes carbon credits and a combination token (NFT)
-            with both crop yield and environmental impact.
+            Browse sustainable farming opportunities. Each listing includes
+            carbon credits and a combination token (NFT) with both crop yield
+            and environmental impact.
           </p>
         </div>
 
@@ -184,7 +198,11 @@ const Marketplace = () => {
           >
             <Filter className="h-5 w-5 mr-2" />
             Filters
-            {showFilters ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
+            {showFilters ? (
+              <ChevronUp className="h-4 w-4 ml-2" />
+            ) : (
+              <ChevronDown className="h-4 w-4 ml-2" />
+            )}
           </button>
 
           <select
@@ -206,13 +224,17 @@ const Marketplace = () => {
             showFilters ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
-          {showFilters && <FiltersPanel filters={filters} setFilters={setFilters} />}
+          {showFilters && (
+            <FiltersPanel filters={filters} setFilters={setFilters} />
+          )}
         </div>
 
         {/* Results Info */}
         <div className="mb-4 text-gray-600 flex items-center">
           Showing {filteredListings.length} results
-          {isLoading && <RefreshCw className="ml-2 h-4 w-4 text-green-600 animate-spin" />}
+          {isLoading && (
+            <RefreshCw className="ml-2 h-4 w-4 text-green-600 animate-spin" />
+          )}
         </div>
       </div>
 
@@ -223,7 +245,7 @@ const Marketplace = () => {
       ) : (
         <>
           {/* Listings Grid - Using the grid-cards class from your CSS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-3  sm:grid-cols-1 gap-6">
             {filteredListings.map((listing, index) => (
               <div
                 key={listing.id}
@@ -240,7 +262,9 @@ const Marketplace = () => {
 
           {filteredListings.length === 0 && (
             <div className="text-center p-12 bg-white rounded-lg shadow mt-6">
-              <p className="text-gray-600">No listings match your search criteria.</p>
+              <p className="text-gray-600">
+                No listings match your search criteria.
+              </p>
             </div>
           )}
         </>
@@ -258,8 +282,14 @@ const Marketplace = () => {
 
       <style jsx global>{`
         @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out;
@@ -268,12 +298,16 @@ const Marketplace = () => {
           animation: spin 1s linear infinite;
         }
         @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default Marketplace
+export default Marketplace;
