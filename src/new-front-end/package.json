@@ -29,7 +29,6 @@
     "normalize-range": "^0.1.2",
     "os": "^0.1.2",
     "path": "^0.12.7",
-    "permissionless": "^0.2.42",
     "picocolors": "^1.1.1",
     "postcss": "^8.5.3",
     "postcss-value-parser": "^4.2.0",

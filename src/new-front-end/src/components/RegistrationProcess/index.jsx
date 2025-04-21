@@ -42,21 +42,23 @@ const RegistrationProcess = ({ setCurrentPage, isLoggedIn, setIsLoggedIn }) => {
     setShowLogin(false);
   };
   
-  // Function to handle form submission for step 1
   const handleStepOneSubmit = async () => {
     try {
-      const receipt = await createHarvest({
+      const payload = {
         crop: formData.cropType,
         quantity: Number(formData.quantity),
-        price: Math.floor(1 / 0.000132), // Preço fictício por enquanto
+        price: Math.floor(1 / 0.000132),
         deliveryDate: new Date(formData.harvestDate).getTime(),
         doc: formData.location,
-      });
+      };
   
+      console.log("📦 Payload da transação:", payload);
+      console.log("🚀 Enviando dados para smart contract:", payload);
+  
+      const receipt = await createHarvest(payload);
       console.log("✅ Transação confirmada:", receipt);
   
-      setShowLogin(true); // avança para login
-  
+      setShowLogin(true);
     } catch (error) {
       console.error("❌ Erro ao registrar safra:", {
         message: error.message,
@@ -66,7 +68,7 @@ const RegistrationProcess = ({ setCurrentPage, isLoggedIn, setIsLoggedIn }) => {
   
       alert("Erro ao registrar safra. Veja o console.");
     }
-  };
+  };  
 
 
   // Continue to verification after login

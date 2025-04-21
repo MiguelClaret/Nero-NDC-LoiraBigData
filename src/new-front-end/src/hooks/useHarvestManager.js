@@ -4,8 +4,13 @@ import { encodeFunctionData } from 'viem';
 import { waitForUserOperationReceipt } from '../utils/waitForReceipt'
 
 // 🔹 Criação da safra pelo produtor
-export async function createHarvest({ crop, quantity, price, deliveryDate, doc }) {
+export async function createHarvest(params) {
+  const { crop, quantity, price, deliveryDate, doc } = params;
   const client = await initSmartWalletClient()
+  console.log("🧪 Verificando SmartAccountClient:", client)
+  console.log("🧪 Verificando client.account:", client.account)
+
+
 
   const calldata = encodeFunctionData({
     abi: CONTRACTS.harvestManager.abi,
@@ -13,12 +18,16 @@ export async function createHarvest({ crop, quantity, price, deliveryDate, doc }
     args: [crop, quantity, price, deliveryDate, doc],
   })
 
+  console.log("🧪 Enviando user operation para:", CONTRACTS.harvestManager.address);
+
   const { hash } = await client.sendUserOperation({
     uo: {
       target: CONTRACTS.harvestManager.address,
       data: calldata,
     }
-  })
+  });
+  
+  console.log("📦 Hash da operação enviada:", hash);  
 
   return await waitForUserOperationReceipt(client, { hash })
 }
