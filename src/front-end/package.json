@@ -4,6 +4,7 @@
   "description": "Tokenização de colheitas e créditos de carbono",
   "type": "module",
   "dependencies": {
+    "@account-abstraction/sdk": "^0.6.0",
     "@coinbase/wallet-sdk": "^4.3.2",
     "@google/genai": "^0.9.0",
     "@tailwindcss/postcss": "^4.1.4",
@@ -12,7 +13,7 @@
     "caniuse-lite": "^1.0.30001714",
     "electron-to-chromium": "^1.5.138",
     "escalade": "^3.2.0",
-    "ethers": "^6.13.5",
+    "ethers": "^5.8.0",
     "fraction.js": "^4.3.7",
     "framer-motion": "^12.7.4",
     "lucide-react": "^0.288.0",

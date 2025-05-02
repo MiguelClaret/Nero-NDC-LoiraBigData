@@ -21,6 +21,7 @@ import CTASection from "./components/CTASection";
 import Footer from "./components/Footer";
 import WalletModal from "./components/WalletModal";
 import ChatbotWidget from "./components/ChatbotWidget";
+import UserOpTestPage from "./components/UserOpTestPage";
 
 // Novas rotas de telas adicionais
 import Marketplace from "./components/Marketplace/Index";
@@ -149,7 +150,9 @@ function App() {
                 )
               }
             />
+            <Route path="/test" element={<UserOpTestPage />} />
           </Routes>
+
         </main>
 
         <Footer />
