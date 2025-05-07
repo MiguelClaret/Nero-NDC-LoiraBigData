@@ -42,7 +42,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
   return (
     <div className="animate-fadeIn">
       <h2 className="text-xl font-semibold text-green-800 mb-4">Marketplace Status</h2>
-      
       <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-md mb-6">
         <div className="flex items-center">
           <Check className="h-5 w-5 text-green-600 mr-2" />
@@ -52,7 +51,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
           Your crop has been verified and is now listed on our marketplace for investors.
         </p>
       </div>
-      
       {/* Token Combo Information */}
       <div className="bg-white p-4 rounded-lg mb-6 border border-gray-200 shadow">
         <h3 className="text-md font-medium text-green-800 flex items-center mb-3">
@@ -80,7 +78,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
               Token ID: #CF{Math.floor(Math.random() * 10000)}
             </div>
           </div>
-          
           <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
             <div className="flex items-center mb-2">
               <Leaf className="h-4 w-4 text-green-600 mr-1" />
@@ -101,7 +98,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
           Combined in NFT Combo #{Math.floor(Math.random() * 100000)} on chain
         </div>
       </div>
-      
       <div className="mt-8">
         <div className="flex justify-between items-center mb-2">
           <h3 className="text-md font-medium text-gray-700">Sales Progress</h3>
@@ -119,7 +115,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
             : 'Congratulations! 100% of your crop tokens have been sold.'}
         </p>
       </div>
-      
       <div className="mt-8 border-t border-gray-200 pt-6">
         <h3 className="text-md font-medium text-gray-700 mb-4">Your Crop Tokens</h3>
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md transform transition-all duration-300 hover:shadow-lg">
@@ -161,7 +156,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
           </div>
         </div>
       </div>
-      
       <div className="mt-8">
         <div className="flex flex-col md:flex-row gap-4">
           <button
@@ -171,7 +165,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
             <FileText className="mr-2 h-5 w-5" />
             View Certificate
           </button>
-          
           <button
             className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2 px-4 rounded-md font-medium transition duration-300 flex items-center justify-center transform hover:scale-105"
           >
@@ -179,7 +172,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
             Track Revenue
           </button>
         </div>
-        
         {/* Novo botão para acessar o marketplace */}
         <div className="mt-6">
           <button
@@ -190,7 +182,6 @@ const MarketplaceStatus = ({ formData, salesProgress, carbonCredits, setCurrentP
             Go to Marketplace to Explore More Investment Opportunities
           </button>
         </div>
-        
         <p className="text-center text-gray-500 text-sm mt-4">
           Your smart contract address: <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs">0x7a3d...92f1</span>
         </p>

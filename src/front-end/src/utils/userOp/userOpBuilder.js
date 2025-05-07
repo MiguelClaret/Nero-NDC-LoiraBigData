@@ -7,7 +7,7 @@ export const getSimpleAccountBuilder = async (signer) => {
     overrideBundlerRpc: AA_PLATFORM_CONFIG.bundlerRpc,
     entryPoint: CONTRACT_ADDRESSES.entryPoint,
     factory: CONTRACT_ADDRESSES.accountFactory,
-});
+  });
 };
   
   

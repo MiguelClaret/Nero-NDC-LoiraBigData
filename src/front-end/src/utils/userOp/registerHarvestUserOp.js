@@ -13,11 +13,19 @@ export const registerHarvestUserOp = async (
     const contractAddress = CONTRACT_ADDRESSES.harvestManager;
     const client = await getUserOperationClient();
     const builder = await getSimpleAccountBuilder(signer);
+
+    // Configuração robusta do paymaster
     builder.setPaymasterOptions({
       type: 0,
-      apikey: '47cf84d0847b40b59a241cb3ca7dbb6e',
-      rpc: 'https://paymaster-testnet.nerochain.io',
-    })
+      apikey: AA_PLATFORM_CONFIG.apiKey,
+      rpc: AA_PLATFORM_CONFIG.paymasterRpc,
+      paymasterAddress: AA_PLATFORM_CONFIG.paymasterAddress,
+    });
+
+    // Limites de gas recomendados pela doc
+    builder.setCallGasLimit(300000);
+    builder.setVerificationGasLimit(2000000);
+    builder.setPreVerificationGas(100000);
 
     const contract = new ethers.Contract(contractAddress, HarvestManagerAbi);
     const calldata = contract.interface.encodeFunctionData("createHarvest", [
@@ -33,16 +41,15 @@ export const registerHarvestUserOp = async (
     console.log("UserOp gerada:", userOp);
     console.log("paymasterAndData final:", builder.getPaymasterAndData());
 
-    
     const res = await client.sendUserOperation(userOp);
-
     console.log("UserOperation enviada:", res.userOpHash);
-
     const receipt = await res.wait();
     console.log("Receipt:", receipt.transactionHash);
-
     return receipt.transactionHash;
   } catch (err) {
+    if (err.message && err.message.includes('AA21')) {
+      alert('O Paymaster não patrocinou a transação (AA21). Verifique saldo e configuração do paymaster na plataforma NERO.');
+    }
     console.error("Erro ao enviar UserOp:", err);
     throw err;
   }

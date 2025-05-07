@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { useState, useEffect } from "react";
 import './index.css'; // Global styles aqui
 import {
@@ -9,6 +10,9 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
+import { useAccount, useDisconnect } from 'wagmi';
+import { Web3AuthProvider } from './components/Web3AuthContext';
+
 // Importação direta dos assets
 import bgPattern from "./assets/bg-pattern.svg";
 
@@ -83,14 +87,67 @@ function RemoveTrailingSlash() {
 }
 
 function App() {
+  // Onboarding state before any UI renders
+  const [pageLoaded, setPageLoaded] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const handleStartOnboarding = () => setShowOnboarding(true);
+  const handleOnboardingComplete = () => { setShowOnboarding(false); localStorage.setItem("seedsafe_onboarding_completed", "true"); };
+  
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Replace simple boolean with wallet details
+  const [walletInfo, setWalletInfo] = useState(null); // Stores { address, signer, provider, chainId, role, isSmartAccount, eoaAddress? }
   const [currentPage, setCurrentPage] = useState("home");
-  const [userRole, setUserRole] = useState(null); // 'producer', 'investor', 'auditor'
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [pageLoaded, setPageLoaded] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  // Wagmi hooks for EOA connection state
+  const { address: eoaAddress, isConnected: isEoaConnected, connector } = useAccount();
+  const { disconnect: disconnectWagmi } = useDisconnect();
+
+  // --- Login/Logout Logic --- 
+
+  // Called by WalletModal upon successful connection (both AA and EOA)
+  const handleLogin = (role, connectionDetails) => {
+    console.log(`Login successful as ${role}:`, connectionDetails);
+    setWalletInfo({ 
+      ...connectionDetails, 
+      role: role 
+    });
+    setIsLoggedIn(true);
+    setIsWalletModalOpen(false); // Close modal on successful login
+    document.body.style.overflow = "auto";
+  };
+
+  // Unified logout function
+  const handleLogout = () => {
+    console.log("Logging out...");
+    if (walletInfo?.isSmartAccount) {
+      // Logout from Web3Auth if it was used for AA
+      console.log("Web3Auth logout should be handled here if applicable.");
+    } else {
+      // Disconnect EOA wallet using Wagmi
+      disconnectWagmi();
+    }
+    setWalletInfo(null); // Clear wallet info
+    setIsLoggedIn(false);
+  };
+
+  // Effect to handle EOA login via RainbowKit/Wagmi
+  useEffect(() => {
+    // If Wagmi connects an EOA and no walletInfo is set yet (or previous was AA)
+    if (isEoaConnected && eoaAddress && (!walletInfo || walletInfo.isSmartAccount)) {
+      console.log("Wagmi EOA connected:", eoaAddress);
+      // Default login as investor for EOA wallets
+      handleLogin("investor", { 
+        address: eoaAddress, 
+        // Safely access chainId using optional chaining
+        chainId: connector?.chains?.[0]?.id,
+        isSmartAccount: false 
+      });
+    }
+  }, [isEoaConnected, eoaAddress, walletInfo, connector]);
+
+  // --- UI State & Styling --- 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
@@ -132,165 +189,150 @@ function App() {
     document.body.style.overflow = "auto";
   };
 
-  // Simular login para demonstração
-  const handleLogin = (role) => {
-    setIsLoggedIn(true);
-    setUserRole(role);
-  };
+  const backgroundStyle = !isMobile ? {
+    backgroundImage: `url(${bgPattern})`,
+    backgroundSize: "auto",
+    backgroundPosition: "center",
+  } : {};
 
-  // Simular logout
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setUserRole(null);
-  };
-  
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-  };
-  
-  const handleStartOnboarding = () => {
-    // Immediately show the onboarding popup
-    setShowOnboarding(true);
-  };
+  const userRole = walletInfo?.role;
 
-  const backgroundStyle = !isMobile
-  ? {
-      backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.25)), url(${bgPattern})`,
-      backgroundSize: "auto",
-      backgroundPosition: "center",
+  // Redirect handler for routes that require authentication
+  const RequireAuth = ({ children, requiredRole }) => {
+    if (!isLoggedIn) {
+      return <Navigate to="/" replace />;
     }
-  : {};
-  
+    
+    if (requiredRole && userRole !== requiredRole) {
+      return <Navigate to="/" replace />;
+    }
+    
+    return children;
+  };
+
   return (
-    <Router>
-      <div className="font-poppins text-slate-800 overflow-x-hidden max-w-screen">
-        {/* Componente que remove barras à direita das URLs */}
-        <RemoveTrailingSlash />
-        
-        <header
-          className={`${
-            isMobile
-              ? "bg-gradient-to-r from-white/95 to-white/90"
-              : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
-          } relative`}
-        >
-          <Navbar
-            openWalletModal={openWalletModal}
-            isLoggedIn={isLoggedIn}
-            userRole={userRole}
-            onLogout={handleLogout}
-          />
-
-          {/* Renderizar Hero apenas na página inicial */}
-          <Routes>
-            <Route path="/" />
-          </Routes>
-        </header>
-
-        <main className="w-full">
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <Hero backgroundStyle={backgroundStyle} openWalletModal={openWalletModal} />
-                  <HowItWorks />
-                  <Benefits />
-                  <Products />
-                  <Testimonials />
-                  <CTASection openWalletModal={openWalletModal} />
-                </>
-              }
+    <Web3AuthProvider>
+      <Router>
+        <div className="font-poppins text-slate-800 overflow-x-hidden max-w-screen">
+          <header
+            className={`${
+              isMobile
+                ? "bg-gradient-to-r from-white/95 to-white/90"
+                : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
+            } pb-12 md:pb-24 relative`}
+            style={{
+              backgroundImage: isMobile ? "none" : `url(${bgPattern})`,
+              backgroundSize: "auto",
+              backgroundPosition: "center",
+            }}
+          >
+            <Navbar
+              openWalletModal={openWalletModal}
+              isLoggedIn={isLoggedIn}
+              userRole={userRole}
+              userAddress={walletInfo?.address}
+              onLogout={handleLogout}
             />
-            
-            {/* Rota para o Marketplace */}
-            <Route
-              path="/marketplace"
-              element={
-                <div
-                  className={`${
-                    isMobile
-                      ? "bg-gradient-to-r from-white/95 to-white/90"
-                      : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
-                  } py-10`}
-                  style={backgroundStyle}
-                >
-                  <Marketplace />
-                </div>
-              }
-            />
-            
-            {/* Rota sem barra que redireciona para a rota correta */}
-            <Route
-              path="marketplace"
-              element={<Navigate to="/marketplace" replace />}
-            />
-            
-            <Route
-              path="/register"
-              element={
-                <div
-                  className={`${
-                    isMobile
-                      ? "bg-gradient-to-r from-white/95 to-white/90"
-                      : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
-                  } py-10`}
-                  style={backgroundStyle}
-                >
-                  <RegistrationProcess
-                    setCurrentPage={setCurrentPage}
-                    isLoggedIn={isLoggedIn}
-                    setIsLoggedIn={setIsLoggedIn}
-                  />
-                </div>
-              }
-            />
-            <Route
-              path="/auditor"
-              element={
-                <div
-                  className={`${
-                    isMobile
-                      ? "bg-gradient-to-r from-white/95 to-white/90"
-                      : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
-                  } py-10`}
-                  style={backgroundStyle}
-                >
-                  <Auditor />
-                </div>
-              }
-            />
-          </Routes>
-        </main>
+            {/* Renderizar Hero apenas na página inicial */}
+            <Routes>
+              <Route
+                path="/"
+                element={<Hero openWalletModal={openWalletModal} walletInfo={walletInfo} />}
+              />
+            </Routes>
+          </header>
 
-        <Footer />
+          <main className="w-full">
+            <Routes>
+              {/* Home page */}
+              <Route
+                path="/"
+                element={
+                  <>
+                    <HowItWorks />
+                    <Benefits />
+                    <Products />
+                    <Testimonials />
+                    <CTASection openWalletModal={openWalletModal} />
+                  </>
+                }
+              />
+              
+              {/* Marketplace - accessible to all */}
+              <Route
+                path="/marketplace"
+                element={
+                  <div
+                    className={`${
+                      isMobile
+                        ? "bg-gradient-to-r from-white/95 to-white/90"
+                        : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
+                    }`}
+                    style={backgroundStyle}
+                  >
+                    <Marketplace walletInfo={walletInfo} />
+                  </div>
+                }
+              />
+              
+              {/* Crop Registration - only for producers */}
+              <Route
+                path="/register"
+                element={
+                  <RequireAuth requiredRole="producer">
+                    <div className="bg-white">
+                      <RegistrationProcess 
+                        walletInfo={walletInfo}
+                        setCurrentPage={setCurrentPage}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                      />
+                    </div>
+                  </RequireAuth>
+                }
+              />
+              
+              {/* Auditor Panel - only for auditors */}
+              <Route
+                path="/auditor"
+                element={
+                  <RequireAuth requiredRole="auditor">
+                    <Auditor walletInfo={walletInfo} />
+                  </RequireAuth>
+                }
+              />
+              
+              {/* Fallback for unknown routes */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
 
-        <WalletModal
-          isOpen={isWalletModalOpen}
-          onClose={closeWalletModal}
-          onLogin={handleLogin}
-        />
+          <Footer />
 
+          {/* Modal de Carteira */}
+          {isWalletModalOpen && (
+            <WalletModal
+              isOpen={isWalletModalOpen}
+              onClose={closeWalletModal}
+              onLogin={handleLogin}
+            />
+          )}
+        </div>
         {/* Only render these components after page has loaded */}
         {pageLoaded && (
           <>
-            {/* Onboarding Components - only keep the main one */}
             <Onboarding 
               isOpen={showOnboarding}
               onComplete={handleOnboardingComplete} 
             />
-            
-            {/* Onboarding Button - persistent and always visible */}
             <OnboardingButton onClick={handleStartOnboarding} />
-
-            {/* Chatbot Widget */}
             <div className="agrobot-button">
               <ChatbotWidget />
             </div>
           </>
         )}
-      </div>
-    </Router>
+      </Router>
+    </Web3AuthProvider>
   );
 }
 

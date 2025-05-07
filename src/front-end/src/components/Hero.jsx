@@ -4,7 +4,15 @@ import heroImage from "../assets/DesignToken.png"; // Ajuste o caminho conforme 
 import { ButtonTooltip } from "./ButtonToolTips"; // Import the ButtonTooltip component
 import bgPattern from "../assets/bg-pattern.svg";
 
-const Hero = ({ openWalletModal, backgroundStyle }) => {
+const Hero = ({ openWalletModal, backgroundStyle, walletInfo }) => {
+
+  const handleProtectedNav = (e, role) => {
+    if (!walletInfo) {
+      e.preventDefault();
+      openWalletModal();
+    }
+  };
+
   return (
     <div
       className="flex flex-row justify-center items-center gap-12 px-8 py-12"
@@ -25,6 +33,7 @@ const Hero = ({ openWalletModal, backgroundStyle }) => {
             <Link
               to="/register"
               className="py-4 px-8 rounded-md text-lg font-semibold bg-green-700 text-white hover:bg-green-800 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              onClick={e => handleProtectedNav(e, 'producer')}
             >
               <i className="fas fa-seedling"></i> I'm a Producer
             </Link>
@@ -35,6 +44,7 @@ const Hero = ({ openWalletModal, backgroundStyle }) => {
             <Link
               to="/marketplace"
               className="py-4 px-8 rounded-md text-lg font-semibold bg-amber-600 text-white hover:bg-amber-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+              onClick={e => handleProtectedNav(e, 'investor')}
             >
               <i className="fas fa-chart-line"></i> I'm an Investor
             </Link>
