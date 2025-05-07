@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/Base64.sol";
+import "./contracts/utils/base64.sol"; // Certifique-se de ter essa lib Base64 incluída
 
 contract NFTCombo is ERC721, AccessControl {
     using Strings for uint256;

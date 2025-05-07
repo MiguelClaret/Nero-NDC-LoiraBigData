@@ -17,10 +17,12 @@ const StepCircles = ({ currentStep, registrationStatus }) => {
         </div>
         <span className="mt-2 text-xs md:text-sm font-medium text-black">Register</span>
       </div>
+      
       {/* Connector line */}
       <div className={`w-10 md:w-24 h-1 transition-colors duration-500 ${
         currentStep >= 2 ? 'bg-green-500' : 'bg-gray-300'
       }`}></div>
+      
       {/* Step 2: Verification */}
       <div className="flex flex-col items-center relative">
         <div 
@@ -46,6 +48,7 @@ const StepCircles = ({ currentStep, registrationStatus }) => {
           ) : (
             <Lock className="h-5 w-5 md:h-6 md:w-6" />
           )}
+          
           {/* Tooltip for locked step */}
           {showTooltip.step2 && currentStep < 2 && (
             <div className="absolute -bottom-12 w-40 bg-white text-gray-800 text-xs p-2 rounded shadow-lg z-10 border border-gray-200">
@@ -55,10 +58,12 @@ const StepCircles = ({ currentStep, registrationStatus }) => {
         </div>
         <span className="mt-2 text-xs md:text-sm font-medium text-black">Verification</span>
       </div>
+      
       {/* Connector line */}
       <div className={`w-10 md:w-24 h-1 transition-colors duration-500 ${
         currentStep >= 3 ? 'bg-green-500' : 'bg-gray-300'
       }`}></div>
+      
       {/* Step 3: Marketplace */}
       <div className="flex flex-col items-center relative">
         <div 
@@ -75,6 +80,7 @@ const StepCircles = ({ currentStep, registrationStatus }) => {
           ) : (
             <Lock className="h-5 w-5 md:h-6 md:w-6" />
           )}
+          
           {/* Tooltip for locked step */}
           {showTooltip.step3 && currentStep < 3 && (
             <div className="absolute -bottom-12 w-40 bg-white text-gray-800 text-xs p-2 rounded shadow-lg z-10 border border-gray-200">
