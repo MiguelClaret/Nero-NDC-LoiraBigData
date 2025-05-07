@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import heroImage from "../assets/DesignToken.png"; // Ajuste o caminho conforme necessário
 import { ButtonTooltip } from "./ButtonToolTips"; // Import the ButtonTooltip component
-import bgPattern from "../assets/bg-pattern.svg";
+import bgPattern from "../assets/bg-pattern.svg"; // teste
 
 
 
