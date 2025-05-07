@@ -12,7 +12,9 @@ const WalletPanel: React.FC<WalletPanelProps> = ({ initialTab = 'Tokens' }) => {
   const [activeTab, setActiveTab] = useState(initialTab)
 
   useEffect(() => {
-    handleTabClick(initialTab)
+    if (['Tokens', 'NFTs', 'Activity'].includes(initialTab)) {
+      handleTabClick(initialTab as 'Tokens' | 'NFTs' | 'Activity');
+    }
   }, [initialTab])
 
   const handleTabClick = (tabName: 'Tokens' | 'NFTs' | 'Activity') => {
