@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -35,6 +36,7 @@ export default defineConfig(({ mode }) => {
         // Whether to polyfill `node:` protocol imports.
         protocolImports: true,
       }),
+      tsconfigPaths(),
     ],
     server: {
       port: 3000,
@@ -46,10 +48,7 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: {
-        // Add alias for Buffer if needed, though nodePolyfills should handle it
-        // 'buffer': 'buffer/', 
-        // Alias to resolve @/ paths like in the nero-aa-wallet example
-        '@/': '/src/' 
+        '@': '/src',
       }
     }
   }

@@ -47,7 +47,7 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
   // Form validation state
   const [dateError, setDateError] = useState('');
   const [areaError, setAreaError] = useState('');
-  
+
   // Handle card selection
   const handlePracticeSelection = (practiceId, isSelected) => {
     let updatedPractices = [...selectedPractices];
@@ -70,7 +70,7 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
     };
     handleCheckboxChange(mockEvent);
   };
-  
+
   // Validate harvest date is in the future
   const validateDate = (e) => {
     const selectedDate = new Date(e.target.value);
@@ -88,7 +88,7 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
     // Still update the form data
     handleInputChange(e);
   };
-  
+
   // Validate farm area is a positive number
   const validateArea = (e) => {
     const area = parseFloat(e.target.value);
@@ -102,19 +102,19 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
     // Still update the form data
     handleInputChange(e);
   };
-  
+
   // Override submit to check validation
   const onSubmit = (e) => {
     e.preventDefault();
     
     // Check validation errors before submitting
     if (dateError || areaError) {
-      return;
+      return; 
     }
     
     handleStepOneSubmit(e);
   };
-  
+      
   // List of sustainable practices with descriptions
   const sustainablePractices = [
     {
@@ -142,7 +142,7 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
       icon: Droplets
     }
   ];
-  
+
   return (
     <div className="animate-fadeIn">
       <h2 className="text-xl font-semibold text-green-800 mb-4">Crop Details</h2>
@@ -245,40 +245,40 @@ const CropForm = ({ formData, handleInputChange, handleCheckboxChange, handleSte
               placeholder="City, State"
               required
             />
-          </div>
+        </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Leaf className="h-4 w-4 inline mr-1 text-green-600" />
-              Sustainable Practices (Select all that apply)
-            </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            <Leaf className="h-4 w-4 inline mr-1 text-green-600" />
+            Sustainable Practices (Select all that apply)
+          </label>
             <p className="text-xs text-gray-500 mb-3">
               Each practice increases your carbon credit allocation and improves your NFT value.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {sustainablePractices.map(practice => (
-                <SustainablePracticeCard
-                  key={practice.id}
-                  id={practice.id}
-                  title={practice.title}
-                  description={practice.description}
-                  icon={practice.icon}
-                  isSelected={selectedPractices.includes(practice.id)}
-                  onChange={handlePracticeSelection}
-                />
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {sustainablePractices.map(practice => (
+              <SustainablePracticeCard
+                key={practice.id}
+                id={practice.id}
+                title={practice.title}
+                description={practice.description}
+                icon={practice.icon}
+                isSelected={selectedPractices.includes(practice.id)}
+                onChange={handlePracticeSelection}
+              />
+            ))}
           </div>
+        </div>
           
           <div className="pt-4">
-            <button 
-              type="submit"
+          <button 
+            type="submit"
               className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-md font-medium transition duration-300 flex items-center justify-center"
               disabled={!!dateError || !!areaError}
-            >
-              Register Crop
+          >
+                Register Crop
               <ArrowRight className="ml-2 h-5 w-5 animate-pulse" />
-            </button>
+          </button>
           </div>
         </div>
       </form>
