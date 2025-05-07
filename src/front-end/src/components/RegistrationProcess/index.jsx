@@ -24,15 +24,15 @@ const RegistrationProcess = ({ setCurrentPage }) => {
     area: "", // Campo adicional para área da fazenda
     sustainablePractices: [],
   });
+  
+  // Estado de status e progresso de registro
   const [registrationStatus, setRegistrationStatus] = useState(null); // 'pending', 'approved', 'rejected'
   const [salesProgress, setSalesProgress] = useState(0); // Percentage of crop sold
-  
+
   // New states for handling transaction processing
   const [isProcessing, setIsProcessing] = useState(false);
   const [transactionHash, setTransactionHash] = useState(null);
   const [registrationComplete, setRegistrationComplete] = useState(false);
-  const [registrationStatus, setRegistrationStatus] = useState(null); // 'pending', 'approved', 'rejected'
-  const [salesProgress, setSalesProgress] = useState(0); // Percentage of crop sold
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Function to handle login form changes
@@ -79,7 +79,11 @@ const RegistrationProcess = ({ setCurrentPage }) => {
       setTransactionHash(userOpHash);
       setRegistrationComplete(true);
       setIsProcessing(false);
-      setShowLogin(true);
+      // Após 3s, avançar para a tela de verificação e marcar status como pendente
+      setTimeout(() => {
+        setRegistrationStatus('pending');
+        setCurrentStep(2);
+      }, 3000);
 
     } catch (err) {
       console.error("Erro ao registrar safra:", err);
@@ -94,17 +98,8 @@ const RegistrationProcess = ({ setCurrentPage }) => {
     setShowLogin(true);
   };
 
-  // Continue to verification after login
-  useEffect(() => {
-    if (isLoggedIn && showLogin === false && currentStep === 1) {
-      setCurrentStep(2);
-      setRegistrationStatus("pending");
-    }
-  }, [isLoggedIn, showLogin, currentStep]);
-
   // Simulate auditor decision (approve/reject)
   const simulateAuditorDecision = (decision) => {
-    setRegistrationStatus(decision);
     if (decision === "approved") {
       setCurrentStep(3);
       // Simulate sales progress over time
@@ -235,7 +230,6 @@ const RegistrationProcess = ({ setCurrentPage }) => {
         {currentStep === 3 && (
           <MarketplaceStatus
             formData={formData}
-            salesProgress={salesProgress}
             carbonCredits={calculateCarbonCredits()}
             setCurrentPage={setCurrentPage}
           />
