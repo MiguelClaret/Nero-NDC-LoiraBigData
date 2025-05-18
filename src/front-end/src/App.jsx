@@ -1,15 +1,18 @@
 "use client";
 
 import React from 'react';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import './index.css'; // Global styles aqui
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { useAccount, useDisconnect } from 'wagmi';
 import { Web3AuthProvider } from './components/Web3AuthContext';
+import { WalletInfoProvider } from './contexts/WalletInfoContext';
 import OverlayProviders from './components/neroOverlay/OverlayProviders';
 import OverlayApp from './components/neroOverlay/OverlayApp';
 
@@ -33,12 +36,72 @@ import Marketplace from "./components/Marketplace/Index";
 import RegistrationProcess from "./components/RegistrationProcess";
 import Auditor from "./components/Auditor";
 
+// Keep the main onboarding components
+import Onboarding from "./components/onboarding";
+import OnboardingButton from "./components/Onboardingbutton";
+
+// Add global styles for interactive guides
+const addGlobalStyles = () => {
+  const style = document.createElement('style');
+  style.id = 'seedsafe-global-styles';
+  style.innerHTML = `
+    .animation-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    
+    .animate-fadeIn {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Posicionamento específico para o botão de onboarding geral */
+    .onboarding-general-button {
+      position: fixed !important;
+      bottom: 20px !important;
+      left: 16px !important;
+      z-index: 50 !important;
+    }
+  `;
+  
+  // Only add if not already present
+  if (!document.getElementById('seedsafe-global-styles')) {
+    document.head.appendChild(style);
+  }
+};
+
+// Componente que remove barras à direita das URLs
+function RemoveTrailingSlash() {
+  const location = useLocation();
+  
+  // Se a URL terminar com uma barra, redirecione para a versão sem a barra
+  if (location.pathname.length > 1 && location.pathname.endsWith('/')) {
+    return <Navigate to={location.pathname.slice(0, -1) + location.search} replace />;
+  }
+  
+  return null;
+}
+
 function App() {
+  // Onboarding state before any UI renders
+  const [pageLoaded, setPageLoaded] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const handleStartOnboarding = () => setShowOnboarding(true);
+  const handleOnboardingComplete = () => { setShowOnboarding(false); localStorage.setItem("seedsafe_onboarding_completed", "true"); };
+  
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   // Replace simple boolean with wallet details
   const [walletInfo, setWalletInfo] = useState(null); // Stores { address, signer, provider, chainId, role, isSmartAccount, eoaAddress? }
   const [currentPage, setCurrentPage] = useState("home");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Wagmi hooks for EOA connection state
   const { address: eoaAddress, isConnected: isEoaConnected, connector } = useAccount();
@@ -47,18 +110,19 @@ function App() {
   // --- Login/Logout Logic --- 
 
   // Called by WalletModal upon successful connection (both AA and EOA)
-  const handleLogin = (role, connectionDetails) => {
+  const handleLogin = useCallback((role, connectionDetails) => {
     console.log(`Login successful as ${role}:`, connectionDetails);
     setWalletInfo({ 
       ...connectionDetails, 
       role: role 
     });
-    setIsWalletModalOpen(false); // Close modal on successful login
-    document.body.style.overflow = "auto";
-  };
+    setIsLoggedIn(true);
+    // setIsWalletModalOpen(false); // Kept commented out as per previous change
+    // document.body.style.overflow = "auto"; // Kept commented out
+  }, [setIsLoggedIn, setWalletInfo]); // Dependencies for useCallback
 
   // Unified logout function
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     console.log("Logging out...");
     if (walletInfo?.isSmartAccount) {
       // Logout from Web3Auth if it was used for AA
@@ -68,7 +132,8 @@ function App() {
       disconnectWagmi();
     }
     setWalletInfo(null); // Clear wallet info
-  };
+    setIsLoggedIn(false);
+  }, [disconnectWagmi, walletInfo, setIsLoggedIn, setWalletInfo]); // Dependencies for useCallback
 
   // Effect to handle EOA login via RainbowKit/Wagmi
   useEffect(() => {
@@ -83,14 +148,38 @@ function App() {
         isSmartAccount: false 
       });
     }
-  }, [isEoaConnected, eoaAddress, walletInfo, connector]);
+  }, [isEoaConnected, eoaAddress, walletInfo, connector, handleLogin]); // Added handleLogin
 
   // --- UI State & Styling --- 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    
+    // Add global styles
+    addGlobalStyles();
+    
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      // Clean up styles if needed
+      const style = document.getElementById('seedsafe-global-styles');
+      if (style) {
+        document.head.removeChild(style);
+      }
+    };
+  }, []);
+
+  // Setup onboarding to show immediately on page load for first-time users
+  useEffect(() => {
+    // Mark page as loaded
+    setPageLoaded(true);
+    
+    // Check if this is a first-time user
+    const hasCompletedOnboarding = localStorage.getItem("seedsafe_onboarding_completed");
+    if (!hasCompletedOnboarding) {
+      // Show onboarding immediately without delay
+      setShowOnboarding(true);
+    }
   }, []);
 
   const openWalletModal = () => {
@@ -109,25 +198,36 @@ function App() {
     backgroundPosition: "center",
   } : {};
 
-  const isLoggedIn = !!walletInfo;
   const userRole = walletInfo?.role;
 
   // Redirect handler for routes that require authentication
   const RequireAuth = ({ children, requiredRole }) => {
     if (!isLoggedIn) {
-      return <Navigate to="/" replace />;
-    }
-    
+      return <Navigate to="/" replace />; // Redirect to home if not logged in
+    } 
+    // Only check role if a requiredRole is specified
     if (requiredRole && userRole !== requiredRole) {
-      return <Navigate to="/" replace />;
+      console.log(`Role mismatch: Required ${requiredRole}, User has ${userRole}`);
+      return <Navigate to="/" replace />; // Redirect to home if role doesn't match
     }
-    
     return children;
   };
 
+  // Combine wallet info and logout action for the context
+  const walletContextValue = useMemo(() => ({
+    // Use optional chaining in case walletInfo is null initially
+    address: walletInfo?.address,
+    signer: walletInfo?.signer,
+    provider: walletInfo?.provider,
+    chainId: walletInfo?.chainId,
+    role: walletInfo?.role,
+    isSmartAccount: walletInfo?.isSmartAccount,
+    eoaAddress: walletInfo?.eoaAddress, 
+    logout: handleLogout // Add the logout function from App.jsx
+  }), [walletInfo, handleLogout]); // Dependencies for useMemo
+
   return (
-    <>
-      {/* Overlay Sidebar Wallet acima de todas as páginas */}
+    <WalletInfoProvider value={walletContextValue}>
       <div style={{ position: 'fixed', top: 24, left: 24, zIndex: 9999 }}>
         <OverlayProviders>
           <OverlayApp mode='sidebar' />
@@ -155,12 +255,10 @@ function App() {
                 userAddress={walletInfo?.address}
                 onLogout={handleLogout}
               />
-
-              {/* Renderizar Hero apenas na página inicial */}
               <Routes>
                 <Route
                   path="/"
-                  element={<Hero openWalletModal={openWalletModal} />}
+                  element={<Hero openWalletModal={openWalletModal} walletInfo={walletInfo} />}
                 />
               </Routes>
             </header>
@@ -193,7 +291,7 @@ function App() {
                       }`}
                       style={backgroundStyle}
                     >
-                      <Marketplace walletInfo={walletInfo} />
+                      <Marketplace />
                     </div>
                   }
                 />
@@ -204,7 +302,12 @@ function App() {
                   element={
                     <RequireAuth requiredRole="producer">
                       <div className="bg-white">
-                        <RegistrationProcess walletInfo={walletInfo} />
+                        <RegistrationProcess 
+                        walletInfo={walletInfo}
+                        setCurrentPage={setCurrentPage}
+                        isLoggedIn={isLoggedIn}
+                        setIsLoggedIn={setIsLoggedIn}
+                      />
                       </div>
                     </RequireAuth>
                   }
@@ -215,7 +318,7 @@ function App() {
                   path="/auditor"
                   element={
                     <RequireAuth requiredRole="auditor">
-                      <Auditor walletInfo={walletInfo} />
+                      <Auditor />
                     </RequireAuth>
                   }
                 />
@@ -227,20 +330,31 @@ function App() {
 
             <Footer />
 
-            {/* Modal de Carteira */}
-            {isWalletModalOpen && (
-              <WalletModal
-                isOpen={isWalletModalOpen}
-                onClose={closeWalletModal}
-                onLogin={handleLogin}
-              />
-            )}
-
-            <ChatbotWidget />
-          </div>
-        </Router>
-      </Web3AuthProvider>
-    </>
+          {/* Modal de Carteira */}
+          {isWalletModalOpen && (
+            <WalletModal
+              isOpen={isWalletModalOpen}
+              onClose={closeWalletModal}
+              onLogin={handleLogin}
+            />
+          )}
+        </div>
+        {/* Only render these components after page has loaded */}
+        {pageLoaded && (
+          <>
+            <Onboarding 
+              isOpen={showOnboarding}
+              onComplete={handleOnboardingComplete} 
+            />
+            <OnboardingButton onClick={handleStartOnboarding} />
+            <div className="agrobot-button">
+              <ChatbotWidget />
+            </div>
+          </>
+        )}
+      </Router>
+    </Web3AuthProvider>
+  </WalletInfoProvider>
   );
 }
 

@@ -19,6 +19,7 @@ export const registerHarvestUserOp = async (
       type: 0,
       apikey: AA_PLATFORM_CONFIG.apiKey,
       rpc: AA_PLATFORM_CONFIG.paymasterRpc,
+      paymasterAddress: AA_PLATFORM_CONFIG.paymasterAddress,
     });
 
     // Limites de gas recomendados pela doc

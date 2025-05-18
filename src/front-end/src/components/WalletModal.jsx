@@ -20,6 +20,8 @@ import coinbaseIcon from "../assets/coinbase.svg";
 import walletconnectIcon from "../assets/walletconnect.svg"; // Add WalletConnect icon
 import neroIcon from "../assets/nero.svg"; // Add Nero icon for AA
 import { Loader2 } from "lucide-react";
+import { BsWallet2 } from "react-icons/bs";
+
 
 // --- Configuration from .env --- 
 const web3AuthClientId = process.env.NEXT_PUBLIC_WEB3AUTH_CLIENT_ID;
@@ -335,7 +337,7 @@ const WalletModal = ({ isOpen, onClose, onLogin }) => {
               <Loader2 className="h-5 w-5 animate-spin text-white" />
             ) : (
               <>
-                <img src={neroIcon || "../assets/nero.svg"} alt="Nero AA" className="h-5 w-5 filter invert brightness-0" />
+                <BsWallet2 className="h-5 w-5 text-green-800" />
                 Login with Smart Account
               </>
             )}

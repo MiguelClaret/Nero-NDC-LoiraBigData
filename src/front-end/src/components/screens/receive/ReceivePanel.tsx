@@ -1,5 +1,5 @@
 import React from 'react'
-import QRCode from 'qrcode.react'
+import { QRCodeCanvas as QRCode } from 'qrcode.react'
 import { AiFillCaretLeft } from 'react-icons/ai'
 import { CopyButton } from '@/components/ui/buttons'
 import { CommonContainerPanel } from '@/components/ui/layout'

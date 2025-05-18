@@ -9,12 +9,17 @@ import {
   ChevronDown,
   ChevronUp,
   Leaf,
-  Info
+  Info,
+  RefreshCw as RefreshIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import FiltersPanel from "./FiltersPanel";
 import CropCard from "./CropCard";
 import PurchaseModal from "./PurchaseModal";
+import { mockListings } from "./mockData";
+import MarketplaceOnboarding from "./MarketplaceOnboarding";
+import BlockchainSecurityInfo from "./BlockchainSecurityInfo";
+import MarketplaceHowItWorksButton from "./HowItWorksButton"; // Import the new button component
 
 // Import ABI and contract address
 import HarvestManagerABI from '../../abi/abiHarvest.json';
@@ -39,10 +44,17 @@ const formatDate = (timestamp) => {
 };
 
 const parseDocumentation = (docString) => {
+  if (!docString || typeof docString !== 'string') {
+    return {
+      location: 'Unknown Location',
+      area: 0,
+      practicesString: '',
+      sustainablePractices: []
+    };
+  }
   const locationMatch = docString.match(/Location: ([^,]+, [^,]+)/);
   const areaMatch = docString.match(/Area: (\d+(\.\d+)?)ha/);
   const practicesMatch = docString.match(/Practices: (.*)/);
-  
   return {
     location: locationMatch ? locationMatch[1].trim() : 'Unknown Location',
     area: areaMatch ? parseFloat(areaMatch[1]) : 0,
@@ -82,6 +94,9 @@ const Marketplace = ({ walletInfo }) => {
     harvestDateBefore: null,
     cropTypes: [],
   });
+  
+  // Onboarding state
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const provider = usePublicClient();
   // Get the EOA signer using Wagmi's hook for connected wallet
@@ -98,17 +113,12 @@ const Marketplace = ({ walletInfo }) => {
       setIsLoading(true);
       setError(null);
       try {
-        // Create NERO-specific provider if needed
-        let neroProvider;
-        if (provider.network?.chainId !== NERO_CHAIN_ID) {
-          console.log("Creating custom NERO provider since current provider is not NERO Chain");
-          neroProvider = new ethers.providers.JsonRpcProvider(NERO_RPC_URL);
-        } else {
-          console.log("Using current provider for NERO Chain");
-          neroProvider = provider;
-        }
+        // Create NERO-specific provider
+        // Always create a new JsonRpcProvider for this specific contract interaction to ensure compatibility
+        console.log("Creating JsonRpcProvider for NERO Chain interaction.");
+        const neroJsonRpcProvider = new ethers.providers.JsonRpcProvider(NERO_RPC_URL);
         
-        const contract = new ethers.Contract(harvestManagerAddress, HarvestManagerABI, neroProvider);
+        const contract = new ethers.Contract(harvestManagerAddress, HarvestManagerABI, neroJsonRpcProvider);
         const currentId = await contract.currentHarvestId();
         const fetchedHarvests = [];
         
@@ -136,10 +146,36 @@ const Marketplace = ({ walletInfo }) => {
     fetchHarvests();
   }, [provider]);
 
+  // Fallback to mock data when fetch fails
+  useEffect(() => {
+    if (!error) return;
+    // Show loading while populating mock data
+    setIsLoading(true);
+    setTimeout(() => {
+      setListings(mockListings);
+      setFilteredListings(mockListings);
+      setIsLoading(false);
+      setError(null);
+    }, 800);
+  }, [error]);
+  
+  // Handler for the "How It Works" button
+  const handleHowItWorksClick = () => {
+    // Mostrar o onboarding independentemente de ter sido concluído antes
+    setShowOnboarding(true);
+  };
+  
+  // Handle onboarding completion
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+  };
+
   // Format fetched data
   useEffect(() => {
     const formatted = listings.map(harvest => {
       const docInfo = parseDocumentation(harvest.documentation);
+      // Support both contract harvests (harvest.crop) and mock listings (harvest.cropType)
+      const cropName = harvest.crop || harvest.cropType || '';
       const carbonCredits = calculateCarbonCredits(docInfo.sustainablePractices, docInfo.area);
       // Price is already in Wei from the contract
       const priceInWei = harvest.pricePerUnit;
@@ -149,20 +185,24 @@ const Marketplace = ({ walletInfo }) => {
 
       return {
         id: harvest.id,
-        cropType: harvest.crop, 
-        quantity: harvest.quantity.toNumber(),
+        cropType: cropName,
+        quantity: typeof harvest.quantity === 'object' && typeof harvest.quantity.toNumber === 'function'
+          ? harvest.quantity.toNumber()
+          : Number(harvest.quantity),
         pricePerUnit: priceInWei, // Keep Wei price for calculations
         displayPriceNERO: displayPriceNERO, // NERO price for display
         displayPriceUSD: displayPriceUSD, // USD price for display
         harvestDate: formatDate(harvest.deliveryDate),
         producerAddress: harvest.producer,
-        farmerName: `Producer ${harvest.producer.substring(0, 6)}...`,
+        farmerName: harvest.producer
+          ? `Producer ${harvest.producer.substring(0, 6)}...`
+          : 'Unknown Producer',
         location: docInfo.location,
         area: docInfo.area,
         sustainablePractices: docInfo.sustainablePractices,
         carbonCredits: parseFloat(carbonCredits),
         farmerRating: 4.5, // Placeholder
-        imageUrl: `/placeholder-images/${harvest.crop.toLowerCase()}.jpg`,
+        imageUrl: `/placeholder-images/${cropName.toLowerCase()}.jpg`,
       };
     });
     setFormattedListings(formatted);
@@ -274,8 +314,7 @@ const Marketplace = ({ walletInfo }) => {
   const getAnimationDelay = (index) => `${index * 50}ms`;
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 bg-slate-100 min-h-screen">
-      {/* Header and Register Link */}
+    <div className="bg-white rounded-lg shadow-lg mb-5 pt-4 border border-gray-100 animate-fadeIn max-w-7xl mx-auto py-8 px-4 bg-slate-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-slate-800 flex items-center">
           <Leaf className="mr-2 h-8 w-8 text-green-600" />
@@ -288,16 +327,25 @@ const Marketplace = ({ walletInfo }) => {
         )}
       </div>
 
-      {/* Info Box and Filters */}
+
+      <BlockchainSecurityInfo />
       <div className="bg-white rounded-lg shadow-lg p-6 mb-8 transition-all duration-300 hover:shadow-xl">
         <div className="flex items-start gap-2">
           <Info className="h-5 w-5 text-green-600 flex-shrink-0 mt-1" />
           <p className="text-gray-700 mb-6">Browse sustainable farming opportunities on NERO Chain. All transactions use the NERO token.</p>
         </div>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-grow relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Search className="h-5 w-5 text-gray-400" /></div>
-            <input type="text" placeholder="Search by crop, producer address, or location" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300" value={searchQuery} onChange={handleSearch} />
+          <div className="flex-grow relative search-bar">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search by crop, farmer, or location"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-300"
+              value={searchQuery}
+              onChange={handleSearch}
+            />
           </div>
           <button onClick={toggleFilters} className="bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 px-4 py-2 rounded-md flex items-center justify-center transition-all duration-300 hover:shadow-md">
             <Filter className="h-5 w-5 mr-2" /> Filters {showFilters ? <ChevronUp className="h-4 w-4 ml-2" /> : <ChevronDown className="h-4 w-4 ml-2" />}
@@ -331,14 +379,6 @@ const Marketplace = ({ walletInfo }) => {
         </div>
       </div>
 
-      {/* Error Loading Message */}
-      {error && (
-         <div className="text-center p-6 bg-red-50 border border-red-200 rounded-lg shadow mt-6">
-            <p className="text-red-700 font-medium">Error loading NERO Chain marketplace:</p>
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-      )}
-
       {/* Listings Grid or No Results Message */}
       {!isLoading && !error && (
         <>
@@ -370,9 +410,18 @@ const Marketplace = ({ walletInfo }) => {
           chainName="NERO Chain"
         />
       )}
+      
+      {/* Onboarding Component */}
+      <MarketplaceOnboarding 
+        isOpen={showOnboarding} 
+        onComplete={handleOnboardingComplete} 
+      />
+      
+      {/* Marketplace How It Works Button - positioned above the general onboarding button */}
+      <MarketplaceHowItWorksButton onClick={handleHowItWorksClick} />
 
-      {/* Styles */}
-      <style jsx global>{`
+      {/* CSS Styles */}
+      <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
         .animate-spin { animation: spin 1s linear infinite; }

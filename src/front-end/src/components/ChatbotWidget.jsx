@@ -1,13 +1,15 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { GoogleGenAI } from "@google/genai"
+import { useState, useRef, useEffect } from "react";
+import { GoogleGenAI } from "@google/genai";
 
 // Initialize Gemini client
-const ai = new GoogleGenAI({ apiKey: "AIzaSyDGhpfn-BSJq13JCLj12mWW8PaAxg8V6bU" })
+const ai = new GoogleGenAI({
+  apiKey: "AIzaSyDGhpfn-BSJq13JCLj12mWW8PaAxg8V6bU",
+});
 const GEMINI_CONTEXT = `
 your name is agrobot, you know everything about seed safe... (same full context as before)
-`
+`;
 
 const ChatMessage = ({ content, sender, isTyping }) => {
   if (isTyping) {
@@ -21,52 +23,61 @@ const ChatMessage = ({ content, sender, isTyping }) => {
           />
         ))}
       </div>
-    )
+    );
   }
 
   const classes =
-    sender === "bot" ? "bg-white border-l-4 border-green-700 self-start" : "bg-green-600 text-white self-end"
-  return <div className={`${classes} rounded-md p-3 max-w-[80%] shadow-sm`}>{content}</div>
-}
+    sender === "bot"
+      ? "bg-white border-l-4 border-green-700 self-start"
+      : "bg-green-600 text-white self-end";
+  return (
+    <div className={`${classes} rounded-md p-3 max-w-[80%] shadow-sm`}>
+      {content}
+    </div>
+  );
+};
 
 const ChatWindow = ({ onClose }) => {
   const [messages, setMessages] = useState([
-    { content: "Hello! I am AgroBot, SeedSafe's assistant. How can I help?", sender: "bot" },
-  ])
-  const [inputValue, setInputValue] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
-  const endRef = useRef(null)
+    {
+      content: "Hello! I am AgroBot, SeedSafe's assistant. How can I help?",
+      sender: "bot",
+    },
+  ]);
+  const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const endRef = useRef(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages, isTyping])
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
 
   const handleSendMessage = async (e) => {
-    e.preventDefault()
-    const text = inputValue.trim()
-    if (!text) return
+    e.preventDefault();
+    const text = inputValue.trim();
+    if (!text) return;
 
-    setMessages((m) => [...m, { content: text, sender: "user" }])
-    setInputValue("")
-    setIsTyping(true)
+    setMessages((m) => [...m, { content: text, sender: "user" }]);
+    setInputValue("");
+    setIsTyping(true);
 
     setTimeout(async () => {
-      let reply
+      let reply;
       try {
         const res = await ai.models.generateContent({
           model: "gemini-2.0-flash",
           contents: `${GEMINI_CONTEXT}, answer in plain text: ${text}`,
-        })
-        reply = res.text
+        });
+        reply = res.text;
       } catch (err) {
-        console.error("Gemini error", err)
-        reply = "Sorry, an error occurred. Please try again later."
+        console.error("Gemini error", err);
+        reply = "Sorry, an error occurred. Please try again later.";
       }
 
-      setIsTyping(false)
-      setMessages((m) => [...m, { content: reply, sender: "bot" }])
-    }, 800)
-  }
+      setIsTyping(false);
+      setMessages((m) => [...m, { content: reply, sender: "bot" }]);
+    }, 800);
+  };
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
@@ -77,7 +88,10 @@ const ChatWindow = ({ onClose }) => {
           </div>
           <h4 className="font-bold">AgroBot</h4>
         </div>
-        <button onClick={onClose} className="text-white text-xl focus:outline-none">
+        <button
+          onClick={onClose}
+          className="text-white text-xl focus:outline-none"
+        >
           <i className="fas fa-times" />
         </button>
       </div>
@@ -88,7 +102,10 @@ const ChatWindow = ({ onClose }) => {
         {isTyping && <ChatMessage isTyping sender="bot" />}
         <div ref={endRef} />
       </div>
-      <form onSubmit={handleSendMessage} className="flex p-2 border-t border-gray-200">
+      <form
+        onSubmit={handleSendMessage}
+        className="flex p-2 border-t border-gray-200"
+      >
         <input
           type="text"
           value={inputValue}
@@ -104,18 +121,20 @@ const ChatWindow = ({ onClose }) => {
         </button>
       </form>
     </div>
-  )
-}
+  );
+};
 
 const ChatbotWidget = () => {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
       {/* Chat window with animation */}
       <div
         className={`fixed bottom-20 right-4 w-80 h-96 z-50 transition-all duration-300 ease-in-out ${
-          isOpen ? "opacity-100 transform translate-y-0" : "opacity-0 transform translate-y-10 pointer-events-none"
+          isOpen
+            ? "opacity-100 transform translate-y-0"
+            : "opacity-0 transform translate-y-10 pointer-events-none"
         }`}
       >
         <ChatWindow onClose={() => setIsOpen(false)} />
@@ -124,15 +143,19 @@ const ChatbotWidget = () => {
       {/* Chat button with animation */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`fixed bottom-4 right-4 w-12 h-12 bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-green-800 transition-all duration-300 ${
+        className={`fixed bottom-4 right-4 w-16 h-16 bg-green-700 text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-green-800 transition-all duration-300 ${
           isOpen ? "rotate-90" : "rotate-0"
         }`}
         aria-label={isOpen ? "Close Chat" : "Open Chat"}
       >
-        <i className={`fas ${isOpen ? "fa-times" : "fa-comments"} text-xl transition-all`} />
+        <i
+          className={`fas ${
+            isOpen ? "fa-times" : "fa-comments"
+          } text-2xl transition-all`}
+        />
       </button>
     </>
-  )
-}
+  );
+};
 
-export default ChatbotWidget
+export default ChatbotWidget;

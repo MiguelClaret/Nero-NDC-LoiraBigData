@@ -63,9 +63,9 @@ const FeatureList = ({ features }) => {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3, delay: index * 0.1 }}
-          whileHover={{ 
-            scale: 1.02, 
-            backgroundColor: "rgba(34, 197, 94, 0.15)" 
+          whileHover={{
+            scale: 1.02,
+            backgroundColor: "rgba(34, 197, 94, 0.15)",
           }}
         >
           <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700">
@@ -117,7 +117,10 @@ const Products = () => {
       image: futuraSafra,
       features: [
         { icon: "fas fa-shield-alt", text: "Integrated guarantee fund" },
-        { icon: "fas fa-sync-alt", text: "Automatic proportional distribution" },
+        {
+          icon: "fas fa-sync-alt",
+          text: "Automatic proportional distribution",
+        },
         { icon: "fas fa-qrcode", text: "Complete traceability" },
         { icon: "fas fa-star", text: "On-chain reputation system" },
       ],
@@ -165,8 +168,11 @@ const Products = () => {
   };
 
   return (
-    <section id="products" className="py-16 px-8 bg-gradient-to-b from-gray-50 to-gray-100">
-      <motion.div 
+    <section
+      id="products"
+      className="py-16 px-8 bg-gradient-to-b from-gray-50 to-gray-100"
+    >
+      <motion.div
         className="text-center max-w-2xl mx-auto mb-12"
         initial={{ opacity: 0, y: 30 }}
         animate={isVisible ? { opacity: 1, y: 0 } : {}}
@@ -181,7 +187,7 @@ const Products = () => {
       </motion.div>
 
       <div className="max-w-[1100px] mx-auto">
-        <motion.div 
+        <motion.div
           className="flex justify-center gap-3 flex-wrap mb-10 p-2 bg-white/50 backdrop-blur-sm shadow-sm rounded-md"
           initial={{ opacity: 0, y: 30 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
@@ -207,16 +213,20 @@ const Products = () => {
                 id={productId}
                 isActive={activeTab === productId}
               >
-                <div className="flex flex-col md:flex-row gap-8 items-center">
-                  <motion.div 
-                    className="md:w-2/5 min-w-[200px]"
+                <div className="flex flex-row gap-8 items-center ">
+                  <motion.div
+                    className="md:w-2/5 min-w-[200px] order-1 md:order-1 py-5"
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
-                    <motion.div 
+                    <motion.div
                       className="w-full h-full rounded-xl overflow-hidden shadow-md bg-white"
-                      style={{ aspectRatio: "1/1", maxWidth: "280px", margin: "0 auto" }}
+                      style={{
+                        aspectRatio: "1/1",
+                        maxWidth: "280px",
+                        margin: "0 auto",
+                      }}
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
@@ -227,16 +237,20 @@ const Products = () => {
                       />
                     </motion.div>
                   </motion.div>
-                  <motion.div 
-                    className="md:w-3/5"
+
+                  {/* Content section - Right side */}
+                  <motion.div
+                    className="md:w-3/5 order-1 md:order-2"
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                   >
-                    <h3 className="text-2xl font-bold mb-4 text-green-700">{product.title}</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-green-700">
+                      {product.title}
+                    </h3>
                     <p className="text-gray-600 mb-6">{product.description}</p>
                     <FeatureList features={product.features} />
-                    <motion.button 
+                    <motion.button
                       onClick={() => navigate(`/marketplace`)}
                       className="py-3 px-8 rounded-full font-semibold bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md hover:shadow-lg"
                       whileHover={{ scale: 1.05 }}
