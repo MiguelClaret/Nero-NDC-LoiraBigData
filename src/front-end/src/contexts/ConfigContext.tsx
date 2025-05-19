@@ -47,9 +47,9 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children, config
   } = chainConfig.chain.nativeToken
 
   const {
-    paymaster: paymasterUrl,
-    paymasterAPIKey: paymasterApi,
-    bundler: bundlerUrl,
+    paymasterRpc: paymasterUrl,
+    apiKey: paymasterApi,
+    bundlerRpc: bundlerUrl,
   } = chainConfig.aa
 
   const { entryPoint, accountFactory, tokenPaymaster } = chainConfig.aaContracts

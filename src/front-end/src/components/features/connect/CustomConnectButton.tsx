@@ -12,13 +12,13 @@ import { CustomConnectButtonProps } from '@/types'
 const CustomConnectButton: React.FC<CustomConnectButtonProps> = ({ mode }) => {
   const { isWalletPanel, setIsWalletPanel } = useContext(SendUserOpContext)!
   const { AAaddress } = useSignature()
-  const [isConnected, setIsConnected] = useState(false)
+  const [rbkConnected, setRbkConnected] = useState(false)
 
   useEffect(() => {
-    if (!isConnected) {
+    if (!rbkConnected) {
       setIsWalletPanel(false)
     }
-  }, [isConnected, setIsWalletPanel])
+  }, [rbkConnected, setIsWalletPanel])
 
   const renderButton = (openConnectModal: () => void) => (
     <WalletConnectSidebar onClick={openConnectModal} variant='Connect' />
@@ -29,16 +29,18 @@ const CustomConnectButton: React.FC<CustomConnectButtonProps> = ({ mode }) => {
       <RainbowConnectButton.Custom>
         {({ account, chain, openChainModal, openConnectModal, authenticationStatus, mounted }) => {
           const ready = mounted && authenticationStatus !== 'loading'
-          const connected = Boolean(
+          const newRbkConnectedStatus = Boolean(
             ready &&
               account &&
               chain &&
               (!authenticationStatus || authenticationStatus === 'authenticated'),
           )
 
-          if (isConnected !== connected) {
-            setIsConnected(connected)
-          }
+          useEffect(() => {
+            if (rbkConnected !== newRbkConnectedStatus) {
+              setRbkConnected(newRbkConnectedStatus)
+            }
+          }, [newRbkConnectedStatus])
 
           if (!ready) return null
           if (chain?.unsupported) {
@@ -46,28 +48,28 @@ const CustomConnectButton: React.FC<CustomConnectButtonProps> = ({ mode }) => {
           }
 
           if (mode === 'button') {
-            if (connected) {
+            if (rbkConnected) {
               return (
                 <WalletConnectRoundedButton
                   onClick={() => setIsWalletPanel(!isWalletPanel)}
                   AAaddress={AAaddress}
-                  isConnected={connected}
+                  isConnected={rbkConnected}
                 />
               )
             }
-            if (!connected) {
+            if (!rbkConnected) {
               return (
                 <WalletConnectRoundedButton
                   onClick={openConnectModal}
                   AAaddress={AAaddress}
-                  isConnected={connected}
+                  isConnected={rbkConnected}
                 />
               )
             }
           }
 
           if (mode === 'sidebar') {
-            if (connected) {
+            if (rbkConnected) {
               return (
                 <ToggleWalletVisibilityButton
                   onClick={() => setIsWalletPanel(!isWalletPanel)}
@@ -76,7 +78,7 @@ const CustomConnectButton: React.FC<CustomConnectButtonProps> = ({ mode }) => {
                 />
               )
             }
-            if (!connected) {
+            if (!rbkConnected) {
               return renderButton(openConnectModal)
             }
           } else {

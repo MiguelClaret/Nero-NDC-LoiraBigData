@@ -1,8 +1,8 @@
 import { useCallback, useContext, useState, useEffect, useRef } from 'react'
 import { BytesLike, ethers } from 'ethers'
-import { ClientContext, SendUserOpContext, SignatureContext } from '@/contexts'
+import { ClientContext, SendUserOpContext, SignatureContext, ConfigContext } from '@/contexts'
 import { useEstimateUserOpFee } from '@/hooks'
-import { useEthersSigner, useConfig, useScreenManager } from '@/hooks'
+import { useEthersSigner, useScreenManager } from '@/hooks'
 import { OperationData, UserOperation, UserOperationResultInterface, screens } from '@/types'
 import { PAYMASTER_MODE } from '@/types/Paymaster'
 import { useBuilderWithPaymaster } from '@/utils'
@@ -13,7 +13,11 @@ export const useSendUserOp = () => {
   const signer = useEthersSigner()
   const client = useContext(ClientContext)
   const { simpleAccountInstance } = useContext(SignatureContext)!
-  const { tokenPaymaster } = useConfig()
+  const configContextValue = useContext(ConfigContext)
+  if (!configContextValue) {
+    throw new Error('useSendUserOp must be used within a ConfigProvider');
+  }
+  const { tokenPaymaster } = configContextValue
   const { estimateUserOpFee, ensurePaymasterApproval } = useEstimateUserOpFee()
   const { initBuilder } = useBuilderWithPaymaster(signer)
 
@@ -207,6 +211,11 @@ export const useSendUserOp = () => {
       userOperations,
       tokenPaymaster,
       ensurePaymasterApproval,
+      setUserOperations,
+      setLatestUserOpResult,
+      sendUserOpContext,
+      navigateTo,
+      currentScreen,
     ],
   )
 
