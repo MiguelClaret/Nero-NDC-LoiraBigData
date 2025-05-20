@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Star,
   Leaf,
@@ -14,39 +14,109 @@ import {
   Thermometer,
   ChevronUp,
   ChevronDown,
+  DollarSign,
+  RefreshCw,
 } from "lucide-react"
+import { 
+  getNeroRate, 
+  convertUsdToNero,
+  formatNero, 
+  formatUsd,
+  NEROCHAIN_ICON_SVG,
+} from "../../services/neroConverter"
 
-// Define the RefreshCw component
-const RefreshCw = (props) => {
+// Define the Nerochain Icon component (usando os dados do serviço)
+const NerochainIcon = (props) => {
   return (
     <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      {...NEROCHAIN_ICON_SVG}
       {...props}
     >
-      <path d="M21 2v6h-6"></path>
-      <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
-      <path d="M3 22v-6h6"></path>
-      <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+      {NEROCHAIN_ICON_SVG.children.map((child, index) => {
+        if (child.tag === 'circle') {
+          return <circle key={index} {...child.props} />;
+        } else if (child.tag === 'path') {
+          return <path key={index} {...child.props} />;
+        }
+        return null;
+      })}
     </svg>
   )
 }
 
-const CropCard = ({ listing, onInvestClick }) => {
+// Dados de exemplo para quando o listing não tiver valores
+const EXAMPLE_PRICES = {
+  "Coffee": 5.25,
+  "Soybean": 0.85,
+  "Corn": 0.65,
+  "Rice": 1.20,
+  "Wheat": 0.90,
+  "Unknown": 1.00
+};
+
+const CropCard = ({ listing = {}, onInvestClick }) => {
+  // Determinando preço exemplo com base no tipo de cultivo
+  const cropType = listing?.cropType || "Unknown";
+  const examplePrice = EXAMPLE_PRICES[cropType] || EXAMPLE_PRICES["Unknown"];
+  const exampleTotalValue = examplePrice * (listing?.quantity || 1000);
+  
+  // Aplicar valores padrão para evitar erros se o listing estiver incompleto
+  const safeListingData = {
+    id: listing?.id || 0,
+    cropType: cropType,
+    quantity: listing?.quantity || 1000,
+    harvestDate: listing?.harvestDate || new Date().toISOString(),
+    location: listing?.location || "Unknown",
+    farmerName: listing?.farmerName || "Unknown Farmer",
+    farmerRating: listing?.farmerRating || 4.0,
+    // Usa valores do listing se disponíveis, senão usa exemplos
+    pricePerKg: (listing?.pricePerKg > 0) ? listing.pricePerKg : examplePrice,
+    sustainablePractices: listing?.sustainablePractices || ["organic"],
+    carbonCredits: listing?.carbonCredits || 5.0,
+    totalValue: (listing?.totalValue > 0) ? listing.totalValue : exampleTotalValue,
+  };
+
   const [isHovered, setIsHovered] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
+  const [showInNero, setShowInNero] = useState(true)
+  const [neroRate, setNeroRate] = useState(2.45)
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Buscar taxa de conversão ao carregar o componente
+  useEffect(() => {
+    const fetchRate = async () => {
+      try {
+        setIsLoading(true)
+        const rate = await getNeroRate()
+        setNeroRate(rate)
+      } catch (error) {
+        console.error("Erro ao buscar taxa:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchRate()
+
+    // Atualizar a cada 5 minutos
+    const interval = setInterval(fetchRate, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Alternar entre USD e NERO
+  const toggleCurrency = () => {
+    setShowInNero(!showInNero)
+  }
 
   // Format the date to be more readable
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" }
-    return new Date(dateString).toLocaleDateString(undefined, options)
+    try {
+      return new Date(dateString).toLocaleDateString(undefined, options)
+    } catch (e) {
+      console.error("Erro ao formatar data:", e);
+      return "Data Indisponível";
+    }
   }
 
   // Generate star rating display
@@ -88,7 +158,7 @@ const CropCard = ({ listing, onInvestClick }) => {
             className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-green-100 text-green-800 hover:bg-green-200 transition-all duration-300"
           >
             {practiceIcons[practice] || <Leaf className="h-2.5 w-2.5 mr-0.5" />}
-            {practiceLabels[practice]}
+            {practiceLabels[practice] || practice}
           </span>
         ))}
       </div>
@@ -131,6 +201,36 @@ const CropCard = ({ listing, onInvestClick }) => {
     }
   }
 
+  // Renderiza o preço com opção de alternar entre USD e NERO
+  const renderPrice = () => {
+    const priceInUSD = safeListingData.pricePerKg;
+    const priceInNERO = convertUsdToNero(priceInUSD, neroRate);
+
+    return (
+      <div 
+        className={`flex items-center cursor-pointer ${isLoading ? 'opacity-70' : ''}`} 
+        onClick={toggleCurrency}
+        title="Clique para alternar entre USD e NERO"
+      >
+        {showInNero ? (
+          <>
+            <NerochainIcon className="h-3 w-3 mr-0.5 text-amber-700" />
+            <span className={`text-xs font-medium ${isHovered ? "text-amber-800" : "text-amber-700"} whitespace-nowrap transition-all duration-300`}>
+              {priceInNERO.toFixed(2)} NERO/kg
+            </span>
+          </>
+        ) : (
+          <>
+            <DollarSign className="h-3 w-3 mr-0.5 text-amber-700" />
+            <span className={`text-xs font-medium ${isHovered ? "text-amber-800" : "text-amber-700"} whitespace-nowrap transition-all duration-300`}>
+              ${priceInUSD.toFixed(2)}/kg
+            </span>
+          </>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div
       className={`bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 h-full flex flex-col ${isHovered ? "shadow-xl -translate-y-1" : ""}`}
@@ -139,9 +239,9 @@ const CropCard = ({ listing, onInvestClick }) => {
     >
       {/* Card Header - Crop Image */}
       <div
-        className={`${getBackgroundColor(listing.cropType)} h-32 relative flex items-center justify-center flex-shrink-0 transition-all duration-300`}
+        className={`${getBackgroundColor(safeListingData.cropType)} h-32 relative flex items-center justify-center flex-shrink-0 transition-all duration-300`}
       >
-        {getCropIcon(listing.cropType)}
+        {getCropIcon(safeListingData.cropType)}
         <div className="absolute top-2 right-2 bg-white rounded-full px-1.5 py-0.5 text-xs font-medium text-amber-800 flex items-center shadow hover:shadow-md transition-all duration-300 cursor-pointer">
           <Award className="h-2.5 w-2.5 mr-0.5 text-amber-500" />
           NFT
@@ -152,30 +252,26 @@ const CropCard = ({ listing, onInvestClick }) => {
       <div className="p-3 flex-grow flex flex-col">
         <div className="flex justify-between items-start mb-1">
           <h3 className="text-base font-semibold text-gray-800 truncate">
-            {listing.quantity}kg {listing.cropType}
+            {safeListingData.quantity}kg {safeListingData.cropType}
           </h3>
-          <span
-            className={`text-xs font-medium ${isHovered ? "text-amber-800" : "text-amber-700"} whitespace-nowrap transition-all duration-300`}
-          >
-            ${listing.pricePerKg}/kg
-          </span>
+          {renderPrice()}
         </div>
 
         <div className="flex items-center mb-0.5 text-xs text-gray-600">
           <User className="h-3 w-3 text-gray-500 mr-0.5 flex-shrink-0" />
-          <span className="truncate">{listing.farmerName}</span>
+          <span className="truncate">{safeListingData.farmerName}</span>
           <span className="mx-1">•</span>
-          {renderRating(listing.farmerRating)}
+          {renderRating(safeListingData.farmerRating)}
         </div>
 
         <div className="flex items-center mb-0.5 text-xs text-gray-600">
           <MapPin className="h-3 w-3 text-gray-500 mr-0.5 flex-shrink-0" />
-          <span className="truncate">{listing.location}</span>
+          <span className="truncate">{safeListingData.location}</span>
         </div>
 
         <div className="flex items-center mb-2 text-xs text-gray-600">
           <Calendar className="h-3 w-3 text-gray-500 mr-0.5 flex-shrink-0" />
-          <span className="truncate">Harvest by {formatDate(listing.harvestDate)}</span>
+          <span className="truncate">Harvest by {formatDate(safeListingData.harvestDate)}</span>
         </div>
 
         <div className="border-t border-gray-100 pt-2 mb-2 mt-auto">
@@ -194,23 +290,37 @@ const CropCard = ({ listing, onInvestClick }) => {
                 </>
               )}
             </button>
-            <span className="text-xs font-medium text-green-700">{listing.carbonCredits} TCO2e</span>
+            <span className="text-xs font-medium text-green-700">{safeListingData.carbonCredits} TCO2e</span>
           </div>
 
           <div
-            className={`overflow-hidden transition-all duration-300 ${showDetails ? "max-h-32 opacity-100 mt-2" : "max-h-0 opacity-0"}`}
+            className={`overflow-hidden transition-all duration-300 ${showDetails ? "max-h-36 opacity-100 mt-2" : "max-h-0 opacity-0"}`}
           >
             {showDetails && (
               <>
-                <div className="text-xs text-gray-600 mb-1">Total Value: ${listing.totalValue}</div>
-                {renderPractices(listing.sustainablePractices)}
+                <div className="text-xs text-gray-600 mb-1 flex justify-between">
+                  <span>Total Value:</span> 
+                  <span>
+                    {showInNero 
+                      ? `${convertUsdToNero(safeListingData.totalValue, neroRate).toFixed(2)} NERO` 
+                      : `$${safeListingData.totalValue.toFixed(2)}`
+                    }
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mb-1">
+                  <span className="flex items-center text-gray-400">
+                    <RefreshCw className="h-2.5 w-2.5 mr-0.5" />
+                    Taxa: 1 USD = {isLoading ? "..." : neroRate.toFixed(2)} NERO
+                  </span>
+                </div>
+                {renderPractices(safeListingData.sustainablePractices)}
               </>
             )}
           </div>
         </div>
 
         <button
-          onClick={() => onInvestClick(listing)}
+          onClick={() => onInvestClick && onInvestClick(safeListingData)}
           className="w-full bg-amber-600 hover:bg-amber-700 text-white py-1.5 px-3 rounded-md font-medium transition-all duration-300 flex items-center justify-center text-sm mt-auto relative overflow-hidden group"
         >
           <span className="relative z-10">Invest Now</span>
