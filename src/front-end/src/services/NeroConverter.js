@@ -6,7 +6,7 @@
  */
 
 // Taxas de conversão padrão (fallback)
-const DEFAULT_USD_TO_NERO_RATE = 2.45; // 1 USD = 2.45 NERO
+const DEFAULT_USD_TO_NERO_RATE = 1; // 1 USD = 2.45 NERO
 const DEFAULT_NERO_TO_USD_RATE = 1 / DEFAULT_USD_TO_NERO_RATE; // 1 NERO = ~0.408 USD
 
 // API configs
