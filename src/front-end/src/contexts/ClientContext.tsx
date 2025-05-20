@@ -16,38 +16,36 @@ export const ClientProvider: React.FC<ProviderProps> = ({ children }) => {
   const paymasterRpcUrl = AA_PLATFORM_CONFIG.paymasterRpc
 
   useEffect(() => {
+    let isMounted = true;
+
     const initClient = async () => {
       if (!rpcUrl || !bundlerUrl || !entryPoint || !paymasterRpcUrl) {
-        console.error('Client.init skipped: One or more crucial config values are missing.', 
-          { rpcUrl, bundlerUrl, entryPoint, paymasterRpcUrl });
+        console.warn('Client initialization skipped: Missing config values');
         return;
       }
-      try {
-        console.log('Initializing userop Client with:')
-        console.log('  RPC URL:', rpcUrl)
-        console.log('  Bundler URL:', bundlerUrl)
-        console.log('  EntryPoint:', entryPoint)
-        console.log('  Paymaster RPC:', paymasterRpcUrl)
 
+      try {
+        console.log('Initializing userop Client...');
         const clientInstance = await Client.init(rpcUrl, {
           entryPoint,
           overrideBundlerRpc: bundlerUrl,
-        })
-        setClient(clientInstance)
-        console.log('Userop Client initialized successfully.')
+        });
+        
+        if (isMounted) {
+          setClient(clientInstance);
+          console.log('Userop Client initialized successfully.');
+        }
       } catch (error) {
-        console.error('Failed to initialize userop client:', error)
+        console.error('Failed to initialize userop client:', error);
       }
-    }
-    if (configContextValue && rpcUrl && bundlerUrl && entryPoint && paymasterRpcUrl) {
-      initClient()
-    } else if (configContextValue) {
-      console.warn('Client initialization skipped: Missing required config values from ConfigContext.', 
-        { rpcUrl, bundlerUrl, entryPoint, paymasterRpcUrl });
-    } else {
-      console.warn('Client initialization skipped: ConfigContext is not yet available.');
-    }
-  }, [configContextValue, rpcUrl, bundlerUrl, entryPoint, paymasterRpcUrl])
+    };
+
+    initClient();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [configContextValue, rpcUrl, bundlerUrl, entryPoint, paymasterRpcUrl]);
 
   return <ClientContext.Provider value={client}>{children}</ClientContext.Provider>
 }

@@ -26,12 +26,12 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
 
   // Get EOA signer from wagmi if no main app signer is available
   const ethersSignerHookResult = useEthersSigner();
-  const eoaSigner = ethersSignerHookResult?.signer; // Safely access signer
+  const eoaSigner = ethersSignerHookResult?.signer;
 
   // Prioritize signer from WalletInfoContext (main application)
   const activeSigner = walletInfoContextValue?.signer || eoaSigner;
-  const mainAppAddress = walletInfoContextValue?.address; // This could be AA or EOA from main app
-  const mainAppEoaAddress = walletInfoContextValue?.eoaAddress; // Specifically EOA from main app
+  const mainAppAddress = walletInfoContextValue?.address;
+  const mainAppEoaAddress = walletInfoContextValue?.eoaAddress;
 
   const initSimpleAccount = useCallback(async () => {
     setError(null)
@@ -43,28 +43,12 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
     if (!rpcUrl || !bundlerUrl || !entryPoint || !accountFactory) {
       console.error(
         '[SignatureContext] Missing crucial config for SimpleAccount init:',
-        {
-          rpcUrl,
-          bundlerUrl,
-          entryPoint,
-          accountFactory,
-        },
+        { rpcUrl, bundlerUrl, entryPoint, accountFactory }
       )
       setError('Missing configuration for smart account initialization.')
       setIsConnected(false)
       return
     }
-
-    console.log('[SignatureContext] Initializing SimpleAccount with:', {
-      activeSigner: activeSigner ? 'present' : 'absent',
-      mainAppAddress,
-      mainAppEoaAddress,
-      rpcUrl,
-      bundlerUrl,
-      entryPoint,
-      accountFactory,
-      projectId,
-    })
 
     setLoading(true)
     try {
@@ -72,14 +56,12 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
         entryPoint,
         factory: accountFactory,
         overrideBundlerRpc: bundlerUrl,
-        // salt: '0x123', // Optional salt
       })
-      console.log('[SignatureContext] SimpleAccount instance created:', instance)
       setSimpleAccountInstance(instance)
       const senderAddress = await instance.getSender()
-      console.log('[SignatureContext] SimpleAccount sender address (AAaddress):', senderAddress)
       setAAaddress(senderAddress)
       setIsConnected(true)
+      console.log('[SignatureContext] SimpleAccount initialized successfully:', senderAddress)
     } catch (e: any) {
       console.error('[SignatureContext] Error initializing SimpleAccount:', e)
       setError(`Error initializing SimpleAccount: ${e.message}`)
@@ -88,69 +70,43 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
     } finally {
       setLoading(false)
     }
-  }, [activeSigner, rpcUrl, bundlerUrl, entryPoint, accountFactory, projectId, mainAppAddress, mainAppEoaAddress])
+  }, [activeSigner, rpcUrl, bundlerUrl, entryPoint, accountFactory])
 
+  // Efeito unificado para inicialização e status de conexão
   useEffect(() => {
-    // Log context values on mount and when they change
-    console.log('[SignatureContext] useEffect: WalletInfoContext value:', walletInfoContextValue);
-    console.log('[SignatureContext] useEffect: ConfigContext value:', configContextValue);
-    console.log('[SignatureContext] useEffect: Active signer:', activeSigner ? 'present' : 'absent');
-    console.log('[SignatureContext] useEffect: EOA signer from useEthersSigner():', eoaSigner ? 'present' : 'absent');
+    if (!configContextValue || !walletInfoContextValue) {
+      console.warn('[SignatureContext] Missing required contexts');
+      return;
+    }
+
+    const wagmiConnected = walletInfoContextValue?.address && 
+                          walletInfoContextValue?.eoaAddress === walletInfoContextValue?.address;
 
     if (activeSigner && rpcUrl && bundlerUrl && entryPoint && accountFactory) {
-      console.log('[SignatureContext] useEffect: Dependencies met, calling initSimpleAccount.')
-      initSimpleAccount()
+      initSimpleAccount();
+    } else if (wagmiConnected) {
+      setIsConnected(true);
+      console.log("[SignatureContext] Connected via EOA:", walletInfoContextValue.address);
     } else {
-      console.warn('[SignatureContext] useEffect: Conditions not met for initSimpleAccount.', {
-        activeSigner: !!activeSigner,
-        rpcUrl: !!rpcUrl,
-        bundlerUrl: !!bundlerUrl,
-        entryPoint: !!entryPoint,
-        accountFactory: !!accountFactory,
-      })
-      setAAaddress('0x') // Reset if conditions are not met
-      setSimpleAccountInstance(null)
-      setIsConnected(false)
+      setAAaddress('0x');
+      setSimpleAccountInstance(null);
+      setIsConnected(false);
+      console.log("[SignatureContext] Disconnected");
     }
-  }, [initSimpleAccount, activeSigner, rpcUrl, bundlerUrl, entryPoint, accountFactory, walletInfoContextValue, configContextValue, eoaSigner])
+  }, [initSimpleAccount, activeSigner, rpcUrl, bundlerUrl, entryPoint, accountFactory, walletInfoContextValue]);
 
   const signMessage = useCallback(
     async (message: string | Uint8Array) => {
       if (!simpleAccountInstance) {
-        console.error('[SignatureContext] signMessage error: SimpleAccount not initialized.')
         throw new Error('SimpleAccount not initialized')
       }
       if (!rpcUrl || !bundlerUrl || !entryPoint || !accountFactory) {
-        console.error(
-          '[SignatureContext] signMessage skipped: Required config values (rpcUrl, bundlerUrl, entryPoint, accountFactory) are missing or not yet available from ConfigContext. Current config from context: ',
-          configContextValue
-        )
         throw new Error('Configuration for smart account is not available.')
       }
       return simpleAccountInstance.signMessage(message)
     },
-    [simpleAccountInstance, rpcUrl, bundlerUrl, entryPoint, accountFactory, configContextValue],
+    [simpleAccountInstance, rpcUrl, bundlerUrl, entryPoint, accountFactory]
   )
-
-  // Determine overall connectedness for the overlay
-  // This could mean either EOA from RainbowKit is connected, or our AA is initialized
-  useEffect(() => {
-    // Reflect RainbowKit's EOA connection status if no AA address is yet derived.
-    // Or if an AA address IS derived, that means we are 'connected' in the AA sense.
-    const wagmiConnected = walletInfoContextValue?.address && walletInfoContextValue?.eoaAddress === walletInfoContextValue?.address;
-    if (AAaddress && AAaddress !== '0x') {
-      setIsConnected(true);
-      console.log("[SignatureContext] Overall connected: AA Address available (", AAaddress, ")");
-    } else if (wagmiConnected) {
-      // If main app has a simple EOA connected via RainbowKit, reflect that. Overlay might just show EOA.
-      setIsConnected(true);
-      console.log("[SignatureContext] Overall connected: EOA connected via WalletInfoContext (", walletInfoContextValue.address, ")");
-    } else {
-      setIsConnected(false);
-      console.log("[SignatureContext] Overall disconnected: No AA address and no EOA from WalletInfoContext.");
-    }
-  }, [AAaddress, walletInfoContextValue]);
-
 
   return (
     <SignatureContext.Provider
@@ -161,7 +117,7 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
         signMessage,
         error,
         isConnected,
-        initSimpleAccount, // Expose init function if needed externally
+        initSimpleAccount,
       }}
     >
       {children}
