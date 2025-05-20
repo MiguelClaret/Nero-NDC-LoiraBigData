@@ -15,13 +15,34 @@ import {
   ChevronUp,
   ChevronDown,
   DollarSign,
+  RefreshCw,
 } from "lucide-react"
+import { 
+  getNeroRate, 
+  convertUsdToNero,
+  formatNero, 
+  formatUsd,
+  NEROCHAIN_ICON_SVG,
+} from "../../services/neroConverter"
 
-// Definindo valores padrão para a conversão
-const DEFAULT_RATE = 2.45; // 1 USD = 2.45 NERO
-let cachedRate = null;
-let lastFetchTime = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+// Define the Nerochain Icon component (usando os dados do serviço)
+const NerochainIcon = (props) => {
+  return (
+    <svg
+      {...NEROCHAIN_ICON_SVG}
+      {...props}
+    >
+      {NEROCHAIN_ICON_SVG.children.map((child, index) => {
+        if (child.tag === 'circle') {
+          return <circle key={index} {...child.props} />;
+        } else if (child.tag === 'path') {
+          return <path key={index} {...child.props} />;
+        }
+        return null;
+      })}
+    </svg>
+  )
+}
 
 // Dados de exemplo para quando o listing não tiver valores
 const EXAMPLE_PRICES = {
@@ -33,92 +54,7 @@ const EXAMPLE_PRICES = {
   "Unknown": 1.00
 };
 
-// Funções de conversão embutidas (para evitar problemas de importação)
-async function getNeroRate() {
-  const now = Date.now();
-  
-  // Retorna o cache se for válido
-  if (cachedRate && now - lastFetchTime < CACHE_DURATION) {
-    return cachedRate;
-  }
-
-  try {
-    // Simula busca na API
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Usa uma taxa base com uma pequena variação
-    const baseRate = DEFAULT_RATE;
-    const variation = (Math.random() * 0.1) - 0.05; // Variação de ±5%
-    
-    cachedRate = baseRate + variation;
-    lastFetchTime = now;
-    
-    return cachedRate;
-  } catch (error) {
-    console.log('Erro ao buscar taxa. Usando valor padrão:', error);
-    
-    if (!cachedRate) {
-      cachedRate = DEFAULT_RATE;
-      lastFetchTime = now;
-    }
-    
-    return cachedRate;
-  }
-}
-
-function convertToNero(usdAmount, rate = DEFAULT_RATE) {
-  if (!usdAmount || isNaN(usdAmount)) return 0;
-  return usdAmount * rate;
-}
-
-// Define the RefreshCw component
-const RefreshCw = (props) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M21 2v6h-6"></path>
-      <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
-      <path d="M3 22v-6h6"></path>
-      <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
-    </svg>
-  )
-}
-
-// Define the Nerochain Icon component
-const NerochainIcon = (props) => {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="M8 14l4-4 4 4" />
-      <path d="M9 9h6" />
-    </svg>
-  )
-}
-
 const CropCard = ({ listing = {}, onInvestClick }) => {
-  console.log("CropCard received listing:", listing); // Para debugging
-
   // Determinando preço exemplo com base no tipo de cultivo
   const cropType = listing?.cropType || "Unknown";
   const examplePrice = EXAMPLE_PRICES[cropType] || EXAMPLE_PRICES["Unknown"];
@@ -140,12 +76,10 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
     totalValue: (listing?.totalValue > 0) ? listing.totalValue : exampleTotalValue,
   };
 
-  console.log("safeListingData pricePerKg:", safeListingData.pricePerKg); // Para debugging
-
   const [isHovered, setIsHovered] = useState(false)
   const [showDetails, setShowDetails] = useState(false)
   const [showInNero, setShowInNero] = useState(true)
-  const [neroRate, setNeroRate] = useState(DEFAULT_RATE)
+  const [neroRate, setNeroRate] = useState(2.45)
   const [isLoading, setIsLoading] = useState(true)
 
   // Buscar taxa de conversão ao carregar o componente
@@ -270,7 +204,7 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
   // Renderiza o preço com opção de alternar entre USD e NERO
   const renderPrice = () => {
     const priceInUSD = safeListingData.pricePerKg;
-    const priceInNERO = convertToNero(priceInUSD, neroRate);
+    const priceInNERO = convertUsdToNero(priceInUSD, neroRate);
 
     return (
       <div 
@@ -368,7 +302,7 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
                   <span>Total Value:</span> 
                   <span>
                     {showInNero 
-                      ? `${convertToNero(safeListingData.totalValue, neroRate).toFixed(2)} NERO` 
+                      ? `${convertUsdToNero(safeListingData.totalValue, neroRate).toFixed(2)} NERO` 
                       : `$${safeListingData.totalValue.toFixed(2)}`
                     }
                   </span>
