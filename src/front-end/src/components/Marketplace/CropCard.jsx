@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Star,
   Leaf,
@@ -16,42 +16,39 @@ import {
   ChevronDown,
   DollarSign,
   RefreshCw,
-} from "lucide-react"
-import { 
-  getNeroRate, 
+} from "lucide-react";
+import {
+  getNeroRate,
   convertUsdToNero,
-  formatNero, 
+  formatNero,
   formatUsd,
   NEROCHAIN_ICON_SVG,
-} from "../../services/neroConverter"
+} from "../../services/NeroConverter";
 
 // Define the Nerochain Icon component (usando os dados do serviço)
 const NerochainIcon = (props) => {
   return (
-    <svg
-      {...NEROCHAIN_ICON_SVG}
-      {...props}
-    >
+    <svg {...NEROCHAIN_ICON_SVG} {...props}>
       {NEROCHAIN_ICON_SVG.children.map((child, index) => {
-        if (child.tag === 'circle') {
+        if (child.tag === "circle") {
           return <circle key={index} {...child.props} />;
-        } else if (child.tag === 'path') {
+        } else if (child.tag === "path") {
           return <path key={index} {...child.props} />;
         }
         return null;
       })}
     </svg>
-  )
-}
+  );
+};
 
 // Dados de exemplo para quando o listing não tiver valores
 const EXAMPLE_PRICES = {
-  "Coffee": 5.25,
-  "Soybean": 0.85,
-  "Corn": 0.65,
-  "Rice": 1.20,
-  "Wheat": 0.90,
-  "Unknown": 1.00
+  Coffee: 5.25,
+  Soybean: 0.85,
+  Corn: 0.65,
+  Rice: 1.2,
+  Wheat: 0.9,
+  Unknown: 1.0,
 };
 
 const CropCard = ({ listing = {}, onInvestClick }) => {
@@ -59,7 +56,7 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
   const cropType = listing?.cropType || "Unknown";
   const examplePrice = EXAMPLE_PRICES[cropType] || EXAMPLE_PRICES["Unknown"];
   const exampleTotalValue = examplePrice * (listing?.quantity || 1000);
-  
+
   // Aplicar valores padrão para evitar erros se o listing estiver incompleto
   const safeListingData = {
     id: listing?.id || 0,
@@ -70,54 +67,55 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
     farmerName: listing?.farmerName || "Unknown Farmer",
     farmerRating: listing?.farmerRating || 4.0,
     // Usa valores do listing se disponíveis, senão usa exemplos
-    pricePerKg: (listing?.pricePerKg > 0) ? listing.pricePerKg : examplePrice,
+    pricePerKg: listing?.pricePerKg > 0 ? listing.pricePerKg : examplePrice,
     sustainablePractices: listing?.sustainablePractices || ["organic"],
     carbonCredits: listing?.carbonCredits || 5.0,
-    totalValue: (listing?.totalValue > 0) ? listing.totalValue : exampleTotalValue,
+    totalValue:
+      listing?.totalValue > 0 ? listing.totalValue : exampleTotalValue,
   };
 
-  const [isHovered, setIsHovered] = useState(false)
-  const [showDetails, setShowDetails] = useState(false)
-  const [showInNero, setShowInNero] = useState(true)
-  const [neroRate, setNeroRate] = useState(2.45)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isHovered, setIsHovered] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showInNero, setShowInNero] = useState(true);
+  const [neroRate, setNeroRate] = useState(2.45);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Buscar taxa de conversão ao carregar o componente
   useEffect(() => {
     const fetchRate = async () => {
       try {
-        setIsLoading(true)
-        const rate = await getNeroRate()
-        setNeroRate(rate)
+        setIsLoading(true);
+        const rate = await getNeroRate();
+        setNeroRate(rate);
       } catch (error) {
-        console.error("Erro ao buscar taxa:", error)
+        console.error("Erro ao buscar taxa:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchRate()
+    fetchRate();
 
     // Atualizar a cada 5 minutos
-    const interval = setInterval(fetchRate, 5 * 60 * 1000)
-    return () => clearInterval(interval)
-  }, [])
+    const interval = setInterval(fetchRate, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Alternar entre USD e NERO
   const toggleCurrency = () => {
-    setShowInNero(!showInNero)
-  }
+    setShowInNero(!showInNero);
+  };
 
   // Format the date to be more readable
   const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "short", day: "numeric" }
+    const options = { year: "numeric", month: "short", day: "numeric" };
     try {
-      return new Date(dateString).toLocaleDateString(undefined, options)
+      return new Date(dateString).toLocaleDateString(undefined, options);
     } catch (e) {
       console.error("Erro ao formatar data:", e);
       return "Data Indisponível";
     }
-  }
+  };
 
   // Generate star rating display
   const renderRating = (rating) => {
@@ -126,13 +124,15 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
         {[...Array(5)].map((_, i) => (
           <Star
             key={i}
-            className={`h-3 w-3 transition-all duration-300 ${i < rating ? "text-amber-500 fill-amber-500" : "text-gray-300"}`}
+            className={`h-3 w-3 transition-all duration-300 ${
+              i < rating ? "text-amber-500 fill-amber-500" : "text-gray-300"
+            }`}
           />
         ))}
         <span className="ml-1 text-xs text-gray-600">({rating})</span>
       </div>
-    )
-  }
+    );
+  };
 
   // Generate sustainable practices badges
   const renderPractices = (practices) => {
@@ -141,14 +141,14 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
       conservation: "Conservation",
       rotation: "Rotation",
       water: "Water",
-    }
+    };
 
     const practiceIcons = {
       organic: <Leaf className="h-2.5 w-2.5 mr-0.5" />,
       conservation: <Crop className="h-2.5 w-2.5 mr-0.5" />,
       rotation: <RefreshCw className="h-2.5 w-2.5 mr-0.5" />,
       water: <Droplet className="h-2.5 w-2.5 mr-0.5" />,
-    }
+    };
 
     return (
       <div className="flex flex-wrap gap-1 mt-2">
@@ -162,44 +162,44 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
           </span>
         ))}
       </div>
-    )
-  }
+    );
+  };
 
   // Custom icon based on crop type
   const getCropIcon = (cropType) => {
     switch (cropType.toLowerCase()) {
       case "coffee":
-        return <Thermometer className="h-12 w-12 text-amber-600" />
+        return <Thermometer className="h-12 w-12 text-amber-600" />;
       case "soybean":
-        return <Crop className="h-12 w-12 text-yellow-600" />
+        return <Crop className="h-12 w-12 text-yellow-600" />;
       case "corn":
-        return <Crop className="h-12 w-12 text-yellow-500" />
+        return <Crop className="h-12 w-12 text-yellow-500" />;
       case "wheat":
-        return <Crop className="h-12 w-12 text-amber-500" />
+        return <Crop className="h-12 w-12 text-amber-500" />;
       case "rice":
-        return <Droplet className="h-12 w-12 text-blue-500" />
+        return <Droplet className="h-12 w-12 text-blue-500" />;
       default:
-        return <Archive className="h-12 w-12 text-green-600" />
+        return <Archive className="h-12 w-12 text-green-600" />;
     }
-  }
+  };
 
   // Get background color based on crop type
   const getBackgroundColor = (cropType) => {
     switch (cropType.toLowerCase()) {
       case "coffee":
-        return "bg-amber-50"
+        return "bg-amber-50";
       case "soybean":
-        return "bg-yellow-50"
+        return "bg-yellow-50";
       case "corn":
-        return "bg-yellow-100"
+        return "bg-yellow-100";
       case "wheat":
-        return "bg-amber-100"
+        return "bg-amber-100";
       case "rice":
-        return "bg-blue-50"
+        return "bg-blue-50";
       default:
-        return "bg-green-100"
+        return "bg-green-100";
     }
-  }
+  };
 
   // Renderiza o preço com opção de alternar entre USD e NERO
   const renderPrice = () => {
@@ -207,39 +207,53 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
     const priceInNERO = convertUsdToNero(priceInUSD, neroRate);
 
     return (
-      <div 
-        className={`flex items-center cursor-pointer ${isLoading ? 'opacity-70' : ''}`} 
+      <div
+        className={`flex items-center cursor-pointer ${
+          isLoading ? "opacity-70" : ""
+        }`}
         onClick={toggleCurrency}
         title="Clique para alternar entre USD e NERO"
       >
         {showInNero ? (
           <>
             <NerochainIcon className="h-3 w-3 mr-0.5 text-amber-700" />
-            <span className={`text-xs font-medium ${isHovered ? "text-amber-800" : "text-amber-700"} whitespace-nowrap transition-all duration-300`}>
+            <span
+              className={`text-xs font-medium ${
+                isHovered ? "text-amber-800" : "text-amber-700"
+              } whitespace-nowrap transition-all duration-300`}
+            >
               {priceInNERO.toFixed(2)} NERO/kg
             </span>
           </>
         ) : (
           <>
             <DollarSign className="h-3 w-3 mr-0.5 text-amber-700" />
-            <span className={`text-xs font-medium ${isHovered ? "text-amber-800" : "text-amber-700"} whitespace-nowrap transition-all duration-300`}>
+            <span
+              className={`text-xs font-medium ${
+                isHovered ? "text-amber-800" : "text-amber-700"
+              } whitespace-nowrap transition-all duration-300`}
+            >
               ${priceInUSD.toFixed(2)}/kg
             </span>
           </>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 h-full flex flex-col ${isHovered ? "shadow-xl -translate-y-1" : ""}`}
+      className={`bg-white rounded-lg shadow-md overflow-hidden border border-gray-100 transition-all duration-300 h-full flex flex-col ${
+        isHovered ? "shadow-xl -translate-y-1" : ""
+      }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Card Header - Crop Image */}
       <div
-        className={`${getBackgroundColor(safeListingData.cropType)} h-32 relative flex items-center justify-center flex-shrink-0 transition-all duration-300`}
+        className={`${getBackgroundColor(
+          safeListingData.cropType
+        )} h-32 relative flex items-center justify-center flex-shrink-0 transition-all duration-300`}
       >
         {getCropIcon(safeListingData.cropType)}
         <div className="absolute top-2 right-2 bg-white rounded-full px-1.5 py-0.5 text-xs font-medium text-amber-800 flex items-center shadow hover:shadow-md transition-all duration-300 cursor-pointer">
@@ -271,7 +285,9 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
 
         <div className="flex items-center mb-2 text-xs text-gray-600">
           <Calendar className="h-3 w-3 text-gray-500 mr-0.5 flex-shrink-0" />
-          <span className="truncate">Harvest by {formatDate(safeListingData.harvestDate)}</span>
+          <span className="truncate">
+            Harvest by {formatDate(safeListingData.harvestDate)}
+          </span>
         </div>
 
         <div className="border-t border-gray-100 pt-2 mb-2 mt-auto">
@@ -290,21 +306,27 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
                 </>
               )}
             </button>
-            <span className="text-xs font-medium text-green-700">{safeListingData.carbonCredits} TCO2e</span>
+            <span className="text-xs font-medium text-green-700">
+              {safeListingData.carbonCredits} TCO2e
+            </span>
           </div>
 
           <div
-            className={`overflow-hidden transition-all duration-300 ${showDetails ? "max-h-36 opacity-100 mt-2" : "max-h-0 opacity-0"}`}
+            className={`overflow-hidden transition-all duration-300 ${
+              showDetails ? "max-h-36 opacity-100 mt-2" : "max-h-0 opacity-0"
+            }`}
           >
             {showDetails && (
               <>
                 <div className="text-xs text-gray-600 mb-1 flex justify-between">
-                  <span>Total Value:</span> 
+                  <span>Total Value:</span>
                   <span>
-                    {showInNero 
-                      ? `${convertUsdToNero(safeListingData.totalValue, neroRate).toFixed(2)} NERO` 
-                      : `$${safeListingData.totalValue.toFixed(2)}`
-                    }
+                    {showInNero
+                      ? `${convertUsdToNero(
+                          safeListingData.totalValue,
+                          neroRate
+                        ).toFixed(2)} NERO`
+                      : `$${safeListingData.totalValue.toFixed(2)}`}
                   </span>
                 </div>
                 <div className="text-xs text-gray-500 mb-1">
@@ -328,7 +350,7 @@ const CropCard = ({ listing = {}, onInvestClick }) => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CropCard
+export default CropCard;

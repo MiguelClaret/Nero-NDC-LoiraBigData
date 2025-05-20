@@ -9,7 +9,7 @@ import {
   convertUsdToNero,
   convertNeroToUsd,
   NEROCHAIN_ICON_SVG
-} from "../../services/neroConverter";
+} from "../../services/NeroConverter";
 
 // Define the NerochainIcon component (usando os dados do serviço)
 const NerochainIcon = (props) => {
