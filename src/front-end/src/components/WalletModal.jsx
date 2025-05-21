@@ -153,9 +153,9 @@ const WalletModal = ({ isOpen, onClose, onLogin }) => {
     }
 
     if (!entryPointAddress || !simpleAccountFactoryAddress) {
-      setError("Account Abstraction configuration missing (EntryPoint/Factory).");
-      setConnecting(null);
-      return;
+       setError("Account Abstraction configuration missing (EntryPoint/Factory).");
+       setConnecting(null);
+       return;
     }
 
     try {
@@ -259,19 +259,23 @@ const WalletModal = ({ isOpen, onClose, onLogin }) => {
         rpcUrl,
         accountOptions
       );
+      console.log('[WalletModal] SimpleAccount instance created:', simpleAccount); // Log instance
+      console.log('[WalletModal] Is simpleAccount a signer?:', simpleAccount instanceof ethers.Signer); // Check if it's a Signer
 
       await loginWeb3AuthContext(web3authProvider, aaAddress);
 
       if (onLogin) {
-        onLogin("producer", {
+        const loginDetails = {
           address: aaAddress,
-          signer: simpleAccount,
+          signer: simpleAccount, // This should be the userop SimpleAccount instance
           provider: ethersProvider,
           eoaAddress: eoaAddress,
           chainId: chainId,
           isSmartAccount: true,
           isDeployed: isDeployed
-        });
+        };
+        console.log('[WalletModal] Calling onLogin with details:', loginDetails); // Log details before calling
+        onLogin("producer", loginDetails);
       }
 
       onClose();
