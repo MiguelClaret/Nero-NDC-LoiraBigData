@@ -13,6 +13,12 @@ import { ethers } from 'ethers';
 const RegistrationProcess = ({ setCurrentPage }) => {
   const { web3authProvider, userAddress, isLoggedIn } = useWeb3Auth();
   const [currentStep, setCurrentStep] = useState(1);
+
+  const [showLogin, setShowLogin] = useState(false);
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  });
   const [formData, setFormData] = useState({
     cropType: "",
     quantity: "",
@@ -46,6 +52,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
     }));
   }, []);
 
+
   const handleStepOneSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (!web3authProvider || !userAddress) {
@@ -72,6 +79,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
   
     try {
       const receivedTransactionHash = await registerHarvestUserOp(web3authProvider, cropData);
+
       if (receivedTransactionHash) {
         console.log("✅ Safra registrada! Hash da Transação:", receivedTransactionHash);
         setTransactionHash(receivedTransactionHash);
@@ -97,6 +105,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
     if (setCurrentPage) setCurrentPage("marketplace");
   };
 
+
   const simulateAuditorDecision = useCallback((decision) => {
     if (decision === "approved") {
       setCurrentStep(3);
@@ -109,8 +118,8 @@ const RegistrationProcess = ({ setCurrentPage }) => {
       }, 2000);
     }
   }, []);
-
   const calculateCarbonCredits = useCallback(() => {
+
     const practiceCredits = {
       organic: 1.2,
       conservation: 0.8,
@@ -124,6 +133,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
         0
       ) * area
     ).toFixed(2);
+
   }, [formData.sustainablePractices, formData.area]);
 
   return (
@@ -131,6 +141,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
       <WalletConnect />
 
       <TransactionPopup
+
         isVisible={showTransactionPopup}
         transactionHash={transactionHash}
         onClose={handleTransactionPopupClose}
@@ -143,6 +154,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
 
       <div className="bg-white rounded-lg shadow-lg md:p-6 border border-gray-100">
         {currentStep === 1 && (
+
           <CropForm
             formData={formData}
             handleInputChange={handleInputChange}
@@ -175,3 +187,4 @@ const RegistrationProcess = ({ setCurrentPage }) => {
 };
 
 export default RegistrationProcess;
+

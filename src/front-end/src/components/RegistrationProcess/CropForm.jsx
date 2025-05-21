@@ -247,6 +247,14 @@ const CropForm = ({
       console.log('[CropForm] Registration is already complete. Preventing re-submission.');
       return; // Impede re-submissão se o registro já estiver completo
     }
+
+    // If registration is complete and user clicks "Next Step"
+    // O botão "Next Step" agora está dentro do modal de sucesso e tem seu próprio onClick.
+    // Esta lógica de onSubmit deve focar apenas no registro da safra.
+    if (registrationComplete) {
+      console.log('[CropForm] Registration is already complete. Preventing re-submission.');
+      return; // Impede re-submissão se o registro já estiver completo
+    }
     handleStepOneSubmit(e);
   };
 
@@ -502,6 +510,7 @@ const CropForm = ({
     Choose how to pay for the gas of this transaction.
   </p>
 </div>
+
 
         <div className="sustainable-practices-container">
           <div className="flex items-center mb-1">

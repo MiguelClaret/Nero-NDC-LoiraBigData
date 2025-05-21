@@ -17,6 +17,11 @@
     "dotenv": "^16.4.5",
     "hardhat": "^2.20.1"
   },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host"
+  },
   "devDependencies": {
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",

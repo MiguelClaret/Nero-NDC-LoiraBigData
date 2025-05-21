@@ -16,6 +16,7 @@ import { WalletInfoProvider } from './contexts/WalletInfoContext';
 import OverlayProviders from './components/neroOverlay/OverlayProviders';
 import OverlayApp from './components/neroOverlay/OverlayApp';
 
+
 // Importação direta dos assets
 import bgPattern from "./assets/bg-pattern.svg";
 
@@ -44,6 +45,7 @@ import OnboardingButton from "./components/Onboardingbutton";
 const addGlobalStyles = () => {
   const style = document.createElement('style');
   style.id = 'seedsafe-global-styles';
+
   style.innerHTML = `
     .animation-float {
       animation: float 3s ease-in-out infinite;
@@ -73,6 +75,7 @@ const addGlobalStyles = () => {
   
   // Only add if not already present
   if (!document.getElementById('seedsafe-global-styles')) {
+
     document.head.appendChild(style);
   }
 };
@@ -85,7 +88,7 @@ function RemoveTrailingSlash() {
   if (location.pathname.length > 1 && location.pathname.endsWith('/')) {
     return <Navigate to={location.pathname.slice(0, -1) + location.search} replace />;
   }
-  
+
   return null;
 }
 
@@ -94,8 +97,12 @@ function App() {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const handleStartOnboarding = () => setShowOnboarding(true);
-  const handleOnboardingComplete = () => { setShowOnboarding(false); localStorage.setItem("seedsafe_onboarding_completed", "true"); };
-  
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    localStorage.setItem("seedsafe_onboarding_completed", "true");
+  };
+
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   // Replace simple boolean with wallet details
@@ -104,22 +111,27 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Wagmi hooks for EOA connection state
-  const { address: eoaAddress, isConnected: isEoaConnected, connector } = useAccount();
+  const {
+    address: eoaAddress,
+    isConnected: isEoaConnected,
+    connector,
+  } = useAccount();
   const { disconnect: disconnectWagmi } = useDisconnect();
 
-  // --- Login/Logout Logic --- 
+  // --- Login/Logout Logic ---
 
   // Called by WalletModal upon successful connection (both AA and EOA)
   const handleLogin = useCallback((role, connectionDetails) => {
     console.log(`Login successful as ${role}:`, connectionDetails);
-    setWalletInfo({ 
-      ...connectionDetails, 
-      role: role 
+    setWalletInfo({
+      ...connectionDetails,
+      role: role,
     });
     setIsLoggedIn(true);
     // setIsWalletModalOpen(false); // Kept commented out as per previous change
     // document.body.style.overflow = "auto"; // Kept commented out
   }, [setIsLoggedIn, setWalletInfo]); // Dependencies for useCallback
+
 
   // Unified logout function
   const handleLogout = useCallback(() => {
@@ -135,22 +147,27 @@ function App() {
     setIsLoggedIn(false);
   }, [disconnectWagmi, walletInfo, setIsLoggedIn, setWalletInfo]); // Dependencies for useCallback
 
+
   // Effect to handle EOA login via RainbowKit/Wagmi
   useEffect(() => {
     // If Wagmi connects an EOA and no walletInfo is set yet (or previous was AA)
-    if (isEoaConnected && eoaAddress && (!walletInfo || walletInfo.isSmartAccount)) {
+    if (
+      isEoaConnected &&
+      eoaAddress &&
+      (!walletInfo || walletInfo.isSmartAccount)
+    ) {
       console.log("Wagmi EOA connected:", eoaAddress);
       // Default login as investor for EOA wallets
-      handleLogin("investor", { 
-        address: eoaAddress, 
+      handleLogin("investor", {
+        address: eoaAddress,
         // Safely access chainId using optional chaining
         chainId: connector?.chains?.[0]?.id,
-        isSmartAccount: false 
+        isSmartAccount: false,
       });
     }
   }, [isEoaConnected, eoaAddress, walletInfo, connector, handleLogin]); // Added handleLogin
 
-  // --- UI State & Styling --- 
+  // --- UI State & Styling ---
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
@@ -163,6 +180,7 @@ function App() {
       window.removeEventListener("resize", handleResize);
       // Clean up styles if needed
       const style = document.getElementById('seedsafe-global-styles');
+
       if (style) {
         document.head.removeChild(style);
       }
@@ -173,9 +191,12 @@ function App() {
   useEffect(() => {
     // Mark page as loaded
     setPageLoaded(true);
-    
+
+
     // Check if this is a first-time user
-    const hasCompletedOnboarding = localStorage.getItem("seedsafe_onboarding_completed");
+    const hasCompletedOnboarding = localStorage.getItem(
+      "seedsafe_onboarding_completed"
+    );
     if (!hasCompletedOnboarding) {
       // Show onboarding immediately without delay
       setShowOnboarding(true);
@@ -192,11 +213,13 @@ function App() {
     document.body.style.overflow = "auto";
   };
 
-  const backgroundStyle = !isMobile ? {
-    backgroundImage: `url(${bgPattern})`,
-    backgroundSize: "auto",
-    backgroundPosition: "center",
-  } : {};
+  const backgroundStyle = !isMobile
+    ? {
+        backgroundImage: `url(${bgPattern})`,
+        backgroundSize: "auto",
+        backgroundPosition: "center",
+      }
+    : {};
 
   const userRole = walletInfo?.role;
 
@@ -206,6 +229,7 @@ function App() {
       return <Navigate to="/" replace />; // Redirect to home if not logged in
     } 
     // Only check role if a requiredRole is specified
+
     if (requiredRole && userRole !== requiredRole) {
       console.log(`Role mismatch: Required ${requiredRole}, User has ${userRole}`);
       return <Navigate to="/" replace />; // Redirect to home if role doesn't match
@@ -328,6 +352,7 @@ function App() {
               </Routes>
             </main>
 
+
             <Footer />
 
           {/* Modal de Carteira */}
@@ -345,6 +370,7 @@ function App() {
             <Onboarding 
               isOpen={showOnboarding}
               onComplete={handleOnboardingComplete} 
+
             />
             <OnboardingButton onClick={handleStartOnboarding} />
             <div className="agrobot-button">
