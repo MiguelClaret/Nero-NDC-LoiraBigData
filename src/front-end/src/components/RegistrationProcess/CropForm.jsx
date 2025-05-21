@@ -247,6 +247,14 @@ const CropForm = ({
       console.log('[CropForm] Registration is already complete. Preventing re-submission.');
       return; // Impede re-submissão se o registro já estiver completo
     }
+
+    // If registration is complete and user clicks "Next Step"
+    // O botão "Next Step" agora está dentro do modal de sucesso e tem seu próprio onClick.
+    // Esta lógica de onSubmit deve focar apenas no registro da safra.
+    if (registrationComplete) {
+      console.log('[CropForm] Registration is already complete. Preventing re-submission.');
+      return; // Impede re-submissão se o registro já estiver completo
+    }
     handleStepOneSubmit(e);
   };
 
@@ -474,6 +482,35 @@ const CropForm = ({
             disabled={isProcessing || registrationComplete}
           />
         </div>
+        <div>
+  <div className="flex items-center mb-1">
+    <label className="block text-sm font-medium text-gray-700">
+      Payment Method
+    </label>
+    <Tooltip
+      content="Choose how you'd like to pay for the transaction fee. Native token, ERC20 or NFT."
+      position="right"
+    >
+      <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+    </Tooltip>
+  </div>
+  <select
+    name="paymentType"
+    value={formData.paymentType || "0"}
+    onChange={handleInputChange}
+    className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+    required
+    disabled={isProcessing || registrationComplete}
+  >
+    <option value="0">Native Token</option>
+    <option value="1">ERC20 Token</option>
+    <option value="2">NFT</option>
+  </select>
+  <p className="text-xs text-gray-500 mt-1">
+    Choose how to pay for the gas of this transaction.
+  </p>
+</div>
+
 
         <div className="sustainable-practices-container">
           <div className="flex items-center mb-1">

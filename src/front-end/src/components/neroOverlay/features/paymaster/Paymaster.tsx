@@ -5,6 +5,7 @@ import { MdAdsClick } from 'react-icons/md'
 import { PaymentOption, TokenList, ErrorDisplay } from './components'
 import { TokenIcon } from '@/components/features/token'
 import { usePaymasterUI } from '@/hooks'
+import { PAYMASTER_MODE } from '@/types/Paymaster'
 
 const PaymasterPanel: React.FC = () => {
   const {
@@ -26,6 +27,9 @@ const PaymasterPanel: React.FC = () => {
     scrollRight,
     handleSelectPaymentType,
     handleBackToSelection,
+    setSponsoredGas,
+    setTokenPayment,
+    selectedMode,
   } = usePaymasterUI()
 
   useEffect(() => {
@@ -50,65 +54,81 @@ const PaymasterPanel: React.FC = () => {
 
         <div className='text-sm text-text-secondary'>Select Payment Method</div>
 
-        <div
-          className={`relative transition-transform duration-500 ${isFlipped ? 'rotate-y-180' : ''}`}
-          style={{ transformStyle: 'preserve-3d' }}
-        >
+        <div className="flex flex-col gap-2 mt-2">
           {/* Sponsored Gas Option */}
-          <div className={`absolute w-full backface-hidden ${!isFlipped ? 'block' : 'hidden'}`}>
-            <PaymentOption
-              isSelected={isSponsoredSelected}
-              isDisabled={!sponsorshipInfo.freeGas}
-              onClick={() => sponsorshipInfo.freeGas && handleSelectPaymentType('sponsored')}
-              icon={
-                <FaGift
-                  className={`text-xs ${
-                    isSponsoredSelected
-                      ? 'text-white scale-110'
-                      : sponsorshipInfo.freeGas
-                        ? 'text-white'
-                        : 'text-gray-400'
-                  }`}
-                />
-              }
-              title='Sponsored Gas'
-              subtitle={
-                sponsorshipInfo.freeGas
-                  ? 'Free transactions available'
-                  : 'Sponsored transactions not available'
-              }
-              rightIcon={sponsorshipInfo.freeGas ? <MdAdsClick className='text-md' /> : undefined}
-            />
-          </div>
+          <PaymentOption
+            isSelected={selectedMode.value === PAYMASTER_MODE.FREE_GAS}
+            isDisabled={!sponsorshipInfo.freeGas}
+            onClick={() => {
+              if (sponsorshipInfo.freeGas) setSponsoredGas()
+            }}
+            icon={
+              <FaGift
+                className={`text-xs ${
+                  selectedMode.value === PAYMASTER_MODE.FREE_GAS
+                    ? 'text-white scale-110'
+                    : sponsorshipInfo.freeGas
+                      ? 'text-white'
+                      : 'text-gray-400'
+                }`}
+              />
+            }
+            title='Sponsored Gas'
+            subtitle={
+              sponsorshipInfo.freeGas
+                ? 'Free transactions available'
+                : 'Sponsored transactions not available'
+            }
+            rightIcon={sponsorshipInfo.freeGas ? <MdAdsClick className='text-md' /> : undefined}
+          />
 
-          {/* Token Payment Option */}
-          <div
-            className={`absolute w-full backface-hidden rotate-y-180 ${isFlipped ? 'block' : 'hidden'}`}
-          >
-            <PaymentOption
-              isDisabled={supportedTokens.length === 0}
-              onClick={() => supportedTokens.length > 0 && handleSelectPaymentType('token')}
-              icon={
-                <TokenIcon
-                  tokenAddress={supportedTokens[0]?.token}
-                  symbol={supportedTokens[0]?.symbol}
-                  size='xs'
-                  isNative={supportedTokens[0]?.type === 'native'}
-                />
-              }
-              title='Pay with Token'
-              subtitle={
-                supportedTokens.length > 0
-                  ? `${supportedTokens.length} tokens available`
-                  : 'No tokens available'
-              }
-              isTokenOption={true}
-              isNativeToken={supportedTokens[0]?.type === 'native'}
-              rightIcon={
-                supportedTokens.length > 0 ? <MdAdsClick className='text-md' /> : undefined
-              }
-            />
-          </div>
+          {/* ERC-20 Pré-pagamento */}
+          <PaymentOption
+            isSelected={selectedMode.value === PAYMASTER_MODE.PRE_FUND}
+            isDisabled={supportedTokens.length === 0}
+            onClick={() => {
+              if (supportedTokens.length > 0) setTokenPayment(supportedTokens[0]?.token, PAYMASTER_MODE.PRE_FUND)
+            }}
+            icon={
+              <TokenIcon
+                tokenAddress={supportedTokens[0]?.token}
+                symbol={supportedTokens[0]?.symbol}
+                size='xs'
+                isNative={supportedTokens[0]?.type === 'native'}
+              />
+            }
+            title='Pay with Token (Pré-pagamento)'
+            subtitle={
+              supportedTokens.length > 0
+                ? `${supportedTokens.length} tokens available`
+                : 'No tokens available'
+            }
+            rightIcon={supportedTokens.length > 0 ? <MdAdsClick className='text-md' /> : undefined}
+          />
+
+          {/* ERC-20 Pós-pagamento */}
+          <PaymentOption
+            isSelected={selectedMode.value === PAYMASTER_MODE.POST_FUND}
+            isDisabled={supportedTokens.length === 0}
+            onClick={() => {
+              if (supportedTokens.length > 0) setTokenPayment(supportedTokens[0]?.token, PAYMASTER_MODE.POST_FUND)
+            }}
+            icon={
+              <TokenIcon
+                tokenAddress={supportedTokens[0]?.token}
+                symbol={supportedTokens[0]?.symbol}
+                size='xs'
+                isNative={supportedTokens[0]?.type === 'native'}
+              />
+            }
+            title='Pay with Token (Pós-pagamento)'
+            subtitle={
+              supportedTokens.length > 0
+                ? `${supportedTokens.length} tokens available`
+                : 'No tokens available'
+            }
+            rightIcon={supportedTokens.length > 0 ? <MdAdsClick className='text-md' /> : undefined}
+          />
         </div>
       </div>
     )
