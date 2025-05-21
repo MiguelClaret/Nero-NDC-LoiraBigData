@@ -1,8 +1,8 @@
 "use client";
 
-import React from 'react';
+import React from "react";
 import { useState, useEffect } from "react";
-import './index.css'; // Global styles aqui
+import "./index.css"; // Global styles aqui
 import {
   BrowserRouter as Router,
   Routes,
@@ -10,8 +10,8 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import { useAccount, useDisconnect } from 'wagmi';
-import { Web3AuthProvider } from './components/Web3AuthContext';
+import { useAccount, useDisconnect } from "wagmi";
+import { Web3AuthProvider } from "./components/Web3AuthContext";
 
 // Importação direta dos assets
 import bgPattern from "./assets/bg-pattern.svg";
@@ -39,8 +39,8 @@ import OnboardingButton from "./components/Onboardingbutton";
 
 // Add global styles for interactive guides
 const addGlobalStyles = () => {
-  const style = document.createElement('style');
-  style.id = 'seedsafe-global-styles';
+  const style = document.createElement("style");
+  style.id = "seedsafe-global-styles";
   style.innerHTML = `
     .animation-float {
       animation: float 3s ease-in-out infinite;
@@ -67,9 +67,9 @@ const addGlobalStyles = () => {
       z-index: 50 !important;
     }
   `;
-  
+
   // Only add if not already present
-  if (!document.getElementById('seedsafe-global-styles')) {
+  if (!document.getElementById("seedsafe-global-styles")) {
     document.head.appendChild(style);
   }
 };
@@ -77,12 +77,14 @@ const addGlobalStyles = () => {
 // Componente que remove barras à direita das URLs
 function RemoveTrailingSlash() {
   const location = useLocation();
-  
+
   // Se a URL terminar com uma barra, redirecione para a versão sem a barra
-  if (location.pathname.length > 1 && location.pathname.endsWith('/')) {
-    return <Navigate to={location.pathname.slice(0, -1) + location.search} replace />;
+  if (location.pathname.length > 1 && location.pathname.endsWith("/")) {
+    return (
+      <Navigate to={location.pathname.slice(0, -1) + location.search} replace />
+    );
   }
-  
+
   return null;
 }
 
@@ -91,8 +93,11 @@ function App() {
   const [pageLoaded, setPageLoaded] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const handleStartOnboarding = () => setShowOnboarding(true);
-  const handleOnboardingComplete = () => { setShowOnboarding(false); localStorage.setItem("seedsafe_onboarding_completed", "true"); };
-  
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    localStorage.setItem("seedsafe_onboarding_completed", "true");
+  };
+
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   // Replace simple boolean with wallet details
@@ -101,17 +106,21 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Wagmi hooks for EOA connection state
-  const { address: eoaAddress, isConnected: isEoaConnected, connector } = useAccount();
+  const {
+    address: eoaAddress,
+    isConnected: isEoaConnected,
+    connector,
+  } = useAccount();
   const { disconnect: disconnectWagmi } = useDisconnect();
 
-  // --- Login/Logout Logic --- 
+  // --- Login/Logout Logic ---
 
   // Called by WalletModal upon successful connection (both AA and EOA)
   const handleLogin = (role, connectionDetails) => {
     console.log(`Login successful as ${role}:`, connectionDetails);
-    setWalletInfo({ 
-      ...connectionDetails, 
-      role: role 
+    setWalletInfo({
+      ...connectionDetails,
+      role: role,
     });
     setIsLoggedIn(true);
     setIsWalletModalOpen(false); // Close modal on successful login
@@ -135,31 +144,35 @@ function App() {
   // Effect to handle EOA login via RainbowKit/Wagmi
   useEffect(() => {
     // If Wagmi connects an EOA and no walletInfo is set yet (or previous was AA)
-    if (isEoaConnected && eoaAddress && (!walletInfo || walletInfo.isSmartAccount)) {
+    if (
+      isEoaConnected &&
+      eoaAddress &&
+      (!walletInfo || walletInfo.isSmartAccount)
+    ) {
       console.log("Wagmi EOA connected:", eoaAddress);
       // Default login as investor for EOA wallets
-      handleLogin("investor", { 
-        address: eoaAddress, 
+      handleLogin("investor", {
+        address: eoaAddress,
         // Safely access chainId using optional chaining
         chainId: connector?.chains?.[0]?.id,
-        isSmartAccount: false 
+        isSmartAccount: false,
       });
     }
   }, [isEoaConnected, eoaAddress, walletInfo, connector]);
 
-  // --- UI State & Styling --- 
+  // --- UI State & Styling ---
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     handleResize();
     window.addEventListener("resize", handleResize);
-    
+
     // Add global styles
     addGlobalStyles();
-    
+
     return () => {
       window.removeEventListener("resize", handleResize);
       // Clean up styles if needed
-      const style = document.getElementById('seedsafe-global-styles');
+      const style = document.getElementById("seedsafe-global-styles");
       if (style) {
         document.head.removeChild(style);
       }
@@ -170,9 +183,11 @@ function App() {
   useEffect(() => {
     // Mark page as loaded
     setPageLoaded(true);
-    
+
     // Check if this is a first-time user
-    const hasCompletedOnboarding = localStorage.getItem("seedsafe_onboarding_completed");
+    const hasCompletedOnboarding = localStorage.getItem(
+      "seedsafe_onboarding_completed"
+    );
     if (!hasCompletedOnboarding) {
       // Show onboarding immediately without delay
       setShowOnboarding(true);
@@ -189,11 +204,13 @@ function App() {
     document.body.style.overflow = "auto";
   };
 
-  const backgroundStyle = !isMobile ? {
-    backgroundImage: `url(${bgPattern})`,
-    backgroundSize: "auto",
-    backgroundPosition: "center",
-  } : {};
+  const backgroundStyle = !isMobile
+    ? {
+        backgroundImage: `url(${bgPattern})`,
+        backgroundSize: "auto",
+        backgroundPosition: "center",
+      }
+    : {};
 
   const userRole = walletInfo?.role;
 
@@ -202,11 +219,11 @@ function App() {
     if (!isLoggedIn) {
       return <Navigate to="/" replace />;
     }
-    
+
     if (requiredRole && userRole !== requiredRole) {
       return <Navigate to="/" replace />;
     }
-    
+
     return children;
   };
 
@@ -237,7 +254,12 @@ function App() {
             <Routes>
               <Route
                 path="/"
-                element={<Hero openWalletModal={openWalletModal} walletInfo={walletInfo} />}
+                element={
+                  <Hero
+                    openWalletModal={openWalletModal}
+                    walletInfo={walletInfo}
+                  />
+                }
               />
             </Routes>
           </header>
@@ -250,14 +272,17 @@ function App() {
                 element={
                   <>
                     <HowItWorks />
-                    <Benefits />
+                    <Benefits
+                      walletInfo={walletInfo}
+                      openWalletModal={openWalletModal}
+                    />
                     <Products />
                     <Testimonials />
                     <CTASection openWalletModal={openWalletModal} />
                   </>
                 }
               />
-              
+
               {/* Marketplace - accessible to all */}
               <Route
                 path="/marketplace"
@@ -274,14 +299,14 @@ function App() {
                   </div>
                 }
               />
-              
+
               {/* Crop Registration - only for producers */}
               <Route
                 path="/register"
                 element={
                   <RequireAuth requiredRole="producer">
                     <div className="bg-white">
-                      <RegistrationProcess 
+                      <RegistrationProcess
                         walletInfo={walletInfo}
                         setCurrentPage={setCurrentPage}
                         isLoggedIn={isLoggedIn}
@@ -291,7 +316,7 @@ function App() {
                   </RequireAuth>
                 }
               />
-              
+
               {/* Auditor Panel - only for auditors */}
               <Route
                 path="/auditor"
@@ -301,7 +326,7 @@ function App() {
                   </RequireAuth>
                 }
               />
-              
+
               {/* Fallback for unknown routes */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
@@ -321,9 +346,9 @@ function App() {
         {/* Only render these components after page has loaded */}
         {pageLoaded && (
           <>
-            <Onboarding 
+            <Onboarding
               isOpen={showOnboarding}
-              onComplete={handleOnboardingComplete} 
+              onComplete={handleOnboardingComplete}
             />
             <OnboardingButton onClick={handleStartOnboarding} />
             <div className="agrobot-button">
