@@ -15,9 +15,13 @@ const BalancePanel: React.FC<BalancePanelProps> = ({
   const activeWallet = useActiveWallet();
   const displayAddress = activeWallet?.address;
 
+  console.log('[BalancePanel] displayAddress:', displayAddress);
+
   const { data, isLoading } = useBalance({ address: displayAddress as `0x${string}` | undefined })
 
-  const accountBalance = data?.value ? formatAndRoundBalance(data.value.toString()) : '0'
+  console.log('[BalancePanel] useBalance data:', data);
+
+  const accountBalance = data?.formatted ? data.formatted : '0'
 
   return (
     <>

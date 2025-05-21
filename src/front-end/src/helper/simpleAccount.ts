@@ -1,10 +1,11 @@
 import { ethers } from 'ethers'
 import { BundlerJsonRpcProvider, Presets, UserOperationBuilder } from 'userop'
-import { ERC4337 } from 'userop/dist/constants'
+import { ERC4337 } from '@account-abstraction/utils'
 import type { BigNumberish, BytesLike } from 'ethers'
 import type { IPresetBuilderOpts, UserOperationMiddlewareFn } from 'userop'
 import { ERC20_ABI, ERC721_ABI } from '@/constants/abi'
 import SimpleAccountFactoryAbi from '@/abis/SimpleAccountFactory.json'
+import IEntryPointAbi from '@/abis/IEntryPoint.json'
 import SimpleAccountAbi from '@/abis/SimpleAccount.json'
 
 const { getGasPrice, estimateUserOperationGas, EOASignature } = Presets.Middleware
@@ -20,11 +21,11 @@ export class SimpleAccount extends UserOperationBuilder {
   private constructor(signer: ethers.Signer, rpcUrl: string, opts?: IPresetBuilderOpts) {
     super()
     this.signer = signer
-    this.provider = new BundlerJsonRpcProvider(rpcUrl).setBundlerRpc(opts?.overrideBundlerRpc)
+    this.provider = new ethers.providers.JsonRpcProvider(rpcUrl)
     this.entryPoint = new ethers.Contract(
       opts?.entryPoint || ERC4337.EntryPoint,
       // @ts-ignore
-      SimpleAccountAbi.abi,
+      IEntryPointAbi,
       this.provider,
     )
     this.factory = new ethers.Contract(

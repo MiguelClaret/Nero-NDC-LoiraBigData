@@ -29,14 +29,19 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
   const eoaSigner = ethersSignerHookResult?.signer; // Safely access signer
 
   // Prioritize signer from WalletInfoContext (main application)
-  const activeSigner = walletInfoContextValue?.signer || eoaSigner;
+  const activeSignerFromWalletInfo = walletInfoContextValue?.signer;
+  const eoaSignerFromWalletInfo = walletInfoContextValue?.eoaSigner; // Get EOA signer if available from WalletInfo
   const mainAppAddress = walletInfoContextValue?.address; // This could be AA or EOA from main app
   const mainAppEoaAddress = walletInfoContextValue?.eoaAddress; // Specifically EOA from main app
 
+  // Determine the EOA signer to be used for initializing SimpleAccount
+  // This should be the EOA that owns/will own the SimpleAccount
+  const eoaSignerForInitialization = eoaSignerFromWalletInfo || eoaSigner;
+
   const initSimpleAccount = useCallback(async () => {
     setError(null)
-    if (!activeSigner) {
-      console.warn('[SignatureContext] No active signer available to initialize SimpleAccount.')
+    if (!eoaSignerForInitialization) {
+      console.warn('[SignatureContext] No EOA signer available (from WalletInfo or local hook) to initialize SimpleAccount.')
       setIsConnected(false)
       return
     }
@@ -55,8 +60,8 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
       return
     }
 
-    console.log('[SignatureContext] Initializing SimpleAccount with:', {
-      activeSigner: activeSigner ? 'present' : 'absent',
+    console.log('[SignatureContext] Initializing SimpleAccount with EOA signer:', {
+      eoaSignerForInit: eoaSignerForInitialization ? 'present' : 'absent',
       mainAppAddress,
       mainAppEoaAddress,
       rpcUrl,
@@ -64,11 +69,27 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
       entryPoint,
       accountFactory,
       projectId,
-    })
+    });
+
+    // ---- START DEBUG LOGS ----
+    if (eoaSignerForInitialization) {
+      console.log('[SignatureContext] typeof eoaSignerForInitialization:', typeof eoaSignerForInitialization);
+      console.log('[SignatureContext] eoaSignerForInitialization object:', eoaSignerForInitialization);
+      console.log('[SignatureContext] eoaSignerForInitialization.getAddress type:', typeof eoaSignerForInitialization.getAddress);
+      console.log('[SignatureContext] eoaSignerForInitialization._isSigner:', eoaSignerForInitialization._isSigner);
+      if (eoaSignerFromWalletInfo === eoaSignerForInitialization) {
+        console.log('[SignatureContext] eoaSignerForInitialization came from WalletInfoContext.eoaSigner');
+      } else if (eoaSigner === eoaSignerForInitialization) {
+        console.log('[SignatureContext] eoaSignerForInitialization came from local eoaSigner hook');
+      }
+    } else {
+      console.warn('[SignatureContext] eoaSignerForInitialization is NOT present for SimpleAccount.init');
+    }
+    // ---- END DEBUG LOGS ----
 
     setLoading(true)
     try {
-      const instance = await SimpleAccount.init(activeSigner, rpcUrl, {
+      const instance = await SimpleAccount.init(eoaSignerForInitialization, rpcUrl, {
         entryPoint,
         factory: accountFactory,
         overrideBundlerRpc: bundlerUrl,
@@ -88,31 +109,35 @@ export const SignatureProvider: React.FC<ProviderProps> = ({ children }) => {
     } finally {
       setLoading(false)
     }
-  }, [activeSigner, rpcUrl, bundlerUrl, entryPoint, accountFactory, projectId, mainAppAddress, mainAppEoaAddress])
+  }, [eoaSignerForInitialization, rpcUrl, bundlerUrl, entryPoint, accountFactory, projectId, mainAppAddress, mainAppEoaAddress])
 
   useEffect(() => {
     // Log context values on mount and when they change
     console.log('[SignatureContext] useEffect: WalletInfoContext value:', walletInfoContextValue);
     console.log('[SignatureContext] useEffect: ConfigContext value:', configContextValue);
-    console.log('[SignatureContext] useEffect: Active signer:', activeSigner ? 'present' : 'absent');
+    console.log('[SignatureContext] useEffect: eoaSignerForInitialization:', eoaSignerForInitialization ? 'present' : 'absent');
     console.log('[SignatureContext] useEffect: EOA signer from useEthersSigner():', eoaSigner ? 'present' : 'absent');
 
-    if (activeSigner && rpcUrl && bundlerUrl && entryPoint && accountFactory) {
+    if (eoaSignerForInitialization && rpcUrl && bundlerUrl && entryPoint && accountFactory) {
       console.log('[SignatureContext] useEffect: Dependencies met, calling initSimpleAccount.')
       initSimpleAccount()
     } else {
-      console.warn('[SignatureContext] useEffect: Conditions not met for initSimpleAccount.', {
-        activeSigner: !!activeSigner,
+      console.warn('[SignatureContext] useEffect: Conditions not met for initSimpleAccount. Checking signer sources:', {
+        walletInfoContextEoaSigner: walletInfoContextValue?.eoaSigner ? 'present' : 'absent',
+        eoaSignerFromHook: eoaSigner ? 'present' : 'absent',
+      });
+      console.warn('[SignatureContext] useEffect: Detailed conditions:', {
+        eoaSignerForInit: !!eoaSignerForInitialization,
         rpcUrl: !!rpcUrl,
         bundlerUrl: !!bundlerUrl,
         entryPoint: !!entryPoint,
         accountFactory: !!accountFactory,
-      })
+      });
       setAAaddress('0x') // Reset if conditions are not met
       setSimpleAccountInstance(null)
       setIsConnected(false)
     }
-  }, [initSimpleAccount, activeSigner, rpcUrl, bundlerUrl, entryPoint, accountFactory, walletInfoContextValue, configContextValue, eoaSigner])
+  }, [initSimpleAccount, eoaSignerForInitialization, rpcUrl, bundlerUrl, entryPoint, accountFactory, walletInfoContextValue, configContextValue, eoaSigner])
 
   const signMessage = useCallback(
     async (message: string | Uint8Array) => {
