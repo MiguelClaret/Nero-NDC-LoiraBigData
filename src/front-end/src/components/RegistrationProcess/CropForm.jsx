@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import {
   Leaf,
   Calendar,
@@ -76,6 +77,7 @@ const SustainablePracticeCard = ({
   icon: Icon,
   isSelected,
   onChange,
+  disabled
 }) => {
   return (
     <div
@@ -83,8 +85,10 @@ const SustainablePracticeCard = ({
         isSelected
           ? "border-green-500 bg-green-50 shadow-[0_0_15px_rgba(74,222,128,0.5)]"
           : "border-gray-200 bg-white hover:bg-gray-50"
+      } ${
+        disabled ? 'opacity-50 cursor-not-allowed' : ''
       }`}
-      onClick={() => onChange(id, !isSelected)}
+      onClick={() => !disabled && onChange(id, !isSelected)}
     >
       <div className="flex items-start">
         <div
@@ -124,11 +128,20 @@ const CropForm = ({
   handleInputChange,
   handleCheckboxChange,
   handleStepOneSubmit,
-  isProcessing,
-  transactionHash,
-  registrationComplete,
+  isProcessing = false,
+  transactionHash = null,
+  registrationComplete = false,
   handleNextStep,
 }) => {
+  const navigate = useNavigate();
+
+  // LOG PROPS PARA DEBUG
+  console.log('[CropForm] Props recebidas no início do render:', { isProcessing, registrationComplete, transactionHash });
+
+  useEffect(() => {
+    console.log('[CropForm] useEffect DETECTED isProcessing prop change TO:', isProcessing);
+  }, [isProcessing]);
+
   // Map to track which cards are selected
   const [selectedPractices, setSelectedPractices] = useState(
     formData.sustainablePractices || []
@@ -163,6 +176,9 @@ const CropForm = ({
 
   // Handle card selection
   const handlePracticeSelection = (practiceId, isSelected) => {
+    // Não permitir alteração se o formulário estiver em processamento ou completo
+    if (isProcessing || registrationComplete) return;
+
     let updatedPractices = [...selectedPractices];
 
     if (isSelected) {
@@ -219,18 +235,26 @@ const CropForm = ({
   // Override submit to check validation
   const onSubmit = (e) => {
     e.preventDefault();
-
+    console.log('[CropForm] Submit button clicked');
     // Check validation errors before submitting
     if (dateError || areaError) {
-      return;
+      return; 
+    }
+    // If registration is complete and user clicks "Next Step"
+    // O botão "Next Step" agora está dentro do modal de sucesso e tem seu próprio onClick.
+    // Esta lógica de onSubmit deve focar apenas no registro da safra.
+    if (registrationComplete) {
+      console.log('[CropForm] Registration is already complete. Preventing re-submission.');
+      return; // Impede re-submissão se o registro já estiver completo
     }
 
     // If registration is complete and user clicks "Next Step"
+    // O botão "Next Step" agora está dentro do modal de sucesso e tem seu próprio onClick.
+    // Esta lógica de onSubmit deve focar apenas no registro da safra.
     if (registrationComplete) {
-      handleNextStep();
-      return;
+      console.log('[CropForm] Registration is already complete. Preventing re-submission.');
+      return; // Impede re-submissão se o registro já estiver completo
     }
-
     handleStepOneSubmit(e);
   };
 
@@ -308,293 +332,292 @@ const CropForm = ({
         </p>
       </div>
 
-      <form onSubmit={onSubmit}>
-        <div className="space-y-4">
-          <div>
-            <div className="flex items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Crop Type
-              </label>
-              <Tooltip
-                content="Selecting your crop type helps investors understand what they're supporting and determines the optimal sustainable practices."
-                position="right"
-              >
-                <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
-              </Tooltip>
-            </div>
-            <select
-              name="cropType"
-              value={formData.cropType}
-              onChange={handleInputChange}
-              className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              required
-              disabled={isProcessing || registrationComplete}
+      <form onSubmit={onSubmit} className="space-y-6">
+        <div>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-gray-700">
+              Crop Type
+            </label>
+            <Tooltip
+              content="Selecting your crop type helps investors understand what they're supporting and determines the optimal sustainable practices."
+              position="right"
             >
-              <option value="">Select crop type</option>
-              <option value="Coffee">Coffee</option>
-              <option value="Soybean">Soybean</option>
-              <option value="Corn">Corn</option>
-              <option value="Wheat">Wheat</option>
-              <option value="Rice">Rice</option>
-            </select>
+              <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+            </Tooltip>
           </div>
+          <select
+            name="cropType"
+            value={formData.cropType}
+            onChange={handleInputChange}
+            className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            required
+            disabled={isProcessing || registrationComplete}
+          >
+            <option value="">Select crop type</option>
+            <option value="Coffee">Coffee</option>
+            <option value="Soybean">Soybean</option>
+            <option value="Corn">Corn</option>
+            <option value="Wheat">Wheat</option>
+            <option value="Rice">Rice</option>
+          </select>
+        </div>
 
-          <div>
-            <div className="flex items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Estimated Quantity (kg)
-              </label>
-              <Tooltip
-                content="This will determine how many tokens are generated. Each token represents 1kg of your harvest."
-                position="right"
-              >
-                <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
-              </Tooltip>
-            </div>
-            <input
-              type="number"
-              name="quantity"
-              value={formData.quantity}
-              onChange={handleInputChange}
-              className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              placeholder="e.g. 1000"
-              required
-              disabled={isProcessing || registrationComplete}
-            />
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-              <Shield className="h-3 w-3 text-green-600" />
-              <span>Verified by a smart contract on the blockchain</span>
-            </p>
+        <div>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-gray-700">
+              Estimated Quantity (kg)
+            </label>
+            <Tooltip
+              content="This will determine how many tokens are generated. Each token represents 1kg of your harvest."
+              position="right"
+            >
+              <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+            </Tooltip>
           </div>
+          <input
+            type="number"
+            name="quantity"
+            value={formData.quantity}
+            onChange={handleInputChange}
+            className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="e.g. 1000"
+            required
+            disabled={isProcessing || registrationComplete}
+          />
+          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            <Shield className="h-3 w-3 text-green-600" />
+            <span>Verified by a smart contract on the blockchain</span>
+          </p>
+        </div>
 
-          <div>
-            <div className="flex items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                <Info className="h-4 w-4 inline mr-1 text-green-600" />
-                Farm Area (hectares)
-              </label>
-              <Tooltip
-                content="Your farm area is used to calculate carbon credits. Larger areas with sustainable practices generate more carbon tokens."
-                position="right"
-              >
-                <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
-              </Tooltip>
-            </div>
-            <input
-              type="number"
-              name="area"
-              value={formData.area}
-              onChange={validateArea}
-              className={`w-full p-2 bg-white text-gray-800 border ${
-                areaError ? "border-red-500" : "border-gray-300"
-              } rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-              placeholder="e.g. 5.5"
-              step="0.1"
-              min="0.1"
-              required
-              disabled={isProcessing || registrationComplete}
-            />
-            {areaError && (
-              <p className="text-red-500 text-xs mt-1">{areaError}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-1">
-              This information is needed to calculate carbon credits
-            </p>
+        <div>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-gray-700">
+              <Info className="h-4 w-4 inline mr-1 text-green-600" />
+              Farm Area (hectares)
+            </label>
+            <Tooltip
+              content="Your farm area is used to calculate carbon credits. Larger areas with sustainable practices generate more carbon tokens."
+              position="right"
+            >
+              <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+            </Tooltip>
           </div>
+          <input
+            type="number"
+            name="area"
+            value={formData.area}
+            onChange={validateArea}
+            className={`w-full p-2 bg-white text-gray-800 border ${
+              areaError ? "border-red-500" : "border-gray-300"
+            } rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+            placeholder="e.g. 5.5"
+            step="0.1"
+            min="0.1"
+            required
+            disabled={isProcessing || registrationComplete}
+          />
+          {areaError && (
+            <p className="text-red-500 text-xs mt-1">{areaError}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            This information is needed to calculate carbon credits
+          </p>
+        </div>
 
-          <div>
-            <div className="flex items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                <Calendar className="h-4 w-4 inline mr-1 text-green-600" />
-                Expected Harvest Date
-              </label>
-              <Tooltip
-                content="This determines when investors will receive their share of the harvest. The smart contract will automatically distribute tokens on this date."
-                position="right"
-              >
-                <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
-              </Tooltip>
-            </div>
-            <input
-              type="date"
-              name="harvestDate"
-              value={formData.harvestDate}
-              onChange={validateDate}
-              className={`w-full p-2 bg-white text-gray-800 border ${
-                dateError ? "border-red-500" : "border-gray-300"
-              } rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500`}
-              required
-              disabled={isProcessing || registrationComplete}
-            />
-            {dateError && (
-              <p className="text-red-500 text-xs mt-1">{dateError}</p>
-            )}
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-              <Shield className="h-3 w-3 text-green-600" />
-              <span>Blockchain enforced delivery date</span>
-            </p>
+        <div>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-gray-700">
+              <Calendar className="h-4 w-4 inline mr-1 text-green-600" />
+              Expected Harvest Date
+            </label>
+            <Tooltip
+              content="This determines when investors will receive their share of the harvest. The smart contract will automatically distribute tokens on this date."
+              position="right"
+            >
+              <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+            </Tooltip>
           </div>
+          <input
+            type="date"
+            name="harvestDate"
+            value={formData.harvestDate}
+            onChange={validateDate}
+            className={`w-full p-2 bg-white text-gray-800 border ${
+              dateError ? "border-red-500" : "border-gray-300"
+            } rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500`}
+            required
+            disabled={isProcessing || registrationComplete}
+          />
+          {dateError && (
+            <p className="text-red-500 text-xs mt-1">{dateError}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            <Shield className="h-3 w-3 text-green-600" />
+            <span>Blockchain enforced delivery date</span>
+          </p>
+        </div>
 
-          <div>
-            <div className="flex items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                <MapPin className="h-4 w-4 inline mr-1 text-green-600" />
-                Farm Location
-              </label>
-              <Tooltip
-                content="Your location is stored securely and used to verify regional sustainability practices. Only public data is visible to investors."
-                position="right"
-              >
-                <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
-              </Tooltip>
-            </div>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              placeholder="City, State"
-              required
-              disabled={isProcessing || registrationComplete}
-            />
+        <div>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-gray-700">
+              <MapPin className="h-4 w-4 inline mr-1 text-green-600" />
+              Farm Location
+            </label>
+            <Tooltip
+              content="Your location is stored securely and used to verify regional sustainability practices. Only public data is visible to investors."
+              position="right"
+            >
+              <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+            </Tooltip>
           </div>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleInputChange}
+            className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            placeholder="City, State"
+            required
+            disabled={isProcessing || registrationComplete}
+          />
+        </div>
+        <div>
+  <div className="flex items-center mb-1">
+    <label className="block text-sm font-medium text-gray-700">
+      Payment Method
+    </label>
+    <Tooltip
+      content="Choose how you'd like to pay for the transaction fee. Native token, ERC20 or NFT."
+      position="right"
+    >
+      <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+    </Tooltip>
+  </div>
+  <select
+    name="paymentType"
+    value={formData.paymentType || "0"}
+    onChange={handleInputChange}
+    className="w-full p-2 bg-white text-gray-800 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+    required
+    disabled={isProcessing || registrationComplete}
+  >
+    <option value="0">Native Token</option>
+    <option value="1">ERC20 Token</option>
+    <option value="2">NFT</option>
+  </select>
+  <p className="text-xs text-gray-500 mt-1">
+    Choose how to pay for the gas of this transaction.
+  </p>
+</div>
 
-          <div className="sustainable-practices-container">
-            <div className="flex items-center mb-1">
-              <label className="block text-sm font-medium text-gray-700">
-                <Leaf className="h-4 w-4 inline mr-1 text-green-600" />
-                Sustainable Practices (Select all that apply)
-              </label>
-              <Tooltip
-                content="Each sustainable practice increases your carbon credit generation, providing additional income beyond your crop sales."
-                position="right"
-              >
-                <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
-              </Tooltip>
-            </div>
-            <p className="text-xs text-gray-500 mb-3">
-              Each practice increases your carbon credit allocation and improves
-              your NFT value.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {sustainablePractices.map((practice) => (
-                <SustainablePracticeCard
-                  key={practice.id}
-                  id={practice.id}
-                  title={practice.title}
-                  description={practice.description}
-                  icon={practice.icon}
-                  isSelected={selectedPractices.includes(practice.id)}
-                  onChange={handlePracticeSelection}
-                  disabled={isProcessing || registrationComplete}
-                />
-              ))}
+
+        <div className="sustainable-practices-container">
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-gray-700">
+              <Leaf className="h-4 w-4 inline mr-1 text-green-600" />
+              Sustainable Practices (Select all that apply)
+            </label>
+            <Tooltip
+              content="Each sustainable practice increases your carbon credit generation, providing additional income beyond your crop sales."
+              position="right"
+            >
+              <HelpCircle className="h-4 w-4 text-gray-400 ml-1 cursor-help" />
+            </Tooltip>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">
+            Each practice increases your carbon credit allocation and improves
+            your NFT value.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {sustainablePractices.map((practice) => (
+              <SustainablePracticeCard
+                key={practice.id}
+                id={practice.id}
+                title={practice.title}
+                description={practice.description}
+                icon={practice.icon}
+                isSelected={selectedPractices.includes(practice.id)}
+                onChange={handlePracticeSelection}
+                disabled={isProcessing || registrationComplete}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Loading and Success States */}
+        {isProcessing && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
+              <Loader className="h-8 w-8 animate-spin text-green-600 mb-4" />
+              <p className="text-lg font-medium text-gray-800">Processing your registration...</p>
+              <p className="text-sm text-gray-600 mt-2">This may take a few moments</p>
             </div>
           </div>
+        )}
 
-          <div className="pt-4">
-            {/* Transaction hash display */}
-            {transactionHash && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <div className="flex items-start space-x-2">
-                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                  <div>
-                    <p className="text-green-700 font-medium">
-                      Registration Successful!
-                    </p>
-                    <div className="mt-1 flex items-center text-sm text-green-600">
-                      <span className="font-medium mr-1">Transaction:</span>
-                      <code
-                        className="bg-green-100 px-2 py-0.5 rounded cursor-pointer hover:bg-green-200 transition-colors"
-                        onClick={(e) => copyToClipboard(transactionHash, e)}
-                        title="Click to copy transaction hash"
-                      >
-                        {shortenHash(transactionHash)}
-                      </code>
-
-                      <div className="flex items-center space-x-1 ml-2">
-                        <Tooltip
-                          content={copyStatus || "Copy transaction hash"}
-                        >
-                          <button
-                            onClick={(e) => copyToClipboard(transactionHash, e)}
-                            className="p-1 rounded-full hover:bg-green-100 transition-colors"
-                            aria-label="Copy transaction hash"
-                            type="button" // Adicione type="button" para evitar que seja tratado como botão de submissão
-                          >
-                            {copyStatus ? (
-                              <Check className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <Copy className="h-4 w-4 text-green-600" />
-                            )}
-                          </button>
-                        </Tooltip>
-                      </div>
-
-                      {copyStatus && (
-                        <span className="ml-2 text-xs font-medium text-green-600 animate-fadeIn">
-                          {copyStatus}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-green-600 mt-1">
-                      Your crop has been registered on the blockchain. Click
-                      Next Step to continue.
-                    </p>
+        {registrationComplete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center max-w-md">
+              <CheckCircle className="h-12 w-12 text-green-600 mb-4" />
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Great! Your crop was registered!</h3>
+              <p className="text-gray-600 text-center mb-4">
+                Your crop has been successfully registered on the blockchain.
+              </p>
+              {transactionHash && (
+                <div className="w-full bg-gray-50 p-3 rounded-lg mb-4">
+                  <p className="text-sm text-gray-600 mb-1">Transaction Hash:</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs bg-gray-100 p-2 rounded flex-1 overflow-hidden text-ellipsis">
+                      {shortenHash(transactionHash)}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={(e) => copyToClipboard(transactionHash, e)}
+                      className="p-2 hover:bg-gray-200 rounded transition-colors"
+                    >
+                      {copyStatus ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+              <button
+                type="button"
+                onClick={() => navigate('/marketplace')}
+                className="w-full py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                Go to Marketplace
+              </button>
+            </div>
+          </div>
+        )}
 
+        {/* Submit Button - só é mostrado se o registro não estiver completo */}
+        {!registrationComplete && (
+          <div className="flex justify-end">
             <button
               type="submit"
-              className={`w-full ${
-                isProcessing
-                  ? "bg-yellow-500 cursor-wait"
-                  : registrationComplete
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : "bg-green-600 hover:bg-green-700"
-              } text-white py-3 px-4 rounded-md font-medium transition duration-300 flex items-center justify-center`}
-              disabled={isProcessing || !!dateError || !!areaError}
+              disabled={isProcessing || dateError || areaError}
+              className={`py-3 px-6 rounded-lg text-white font-medium flex items-center gap-2 ${
+                isProcessing || dateError || areaError
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700'
+              }`}
             >
               {isProcessing ? (
                 <>
-                  <Loader className="mr-2 h-5 w-5 animate-spin" />
-                  <span>Processing Transaction...</span>
-                </>
-              ) : registrationComplete ? (
-                <>
-                  <span>Next Step</span>
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <Loader className="h-5 w-5 animate-spin" />
+                  Processing...
                 </>
               ) : (
                 <>
-                  <span className="relative z-10">
-                    Register Crop on Blockchain
-                  </span>
-                  <ArrowRight className="ml-2 h-5 w-5 animate-pulse" />
+                  Register Crop
+                  <ArrowRight className="h-5 w-5" />
                 </>
               )}
             </button>
-
-            {!isProcessing && !registrationComplete && (
-              <p className="text-center text-xs text-gray-500 mt-2 flex items-center justify-center gap-1">
-                <Lock className="h-3 w-3" />
-                Secured by NERO Chain | Zero gas fees
-              </p>
-            )}
-
-            {isProcessing && (
-              <p className="text-center text-xs text-amber-600 mt-2 flex items-center justify-center gap-1">
-                <Loader className="h-3 w-3 animate-spin" />
-                <span>
-                  Please wait while we register your crop on the blockchain...
-                </span>
-              </p>
-            )}
           </div>
-        </div>
+        )}
       </form>
     </div>
   );

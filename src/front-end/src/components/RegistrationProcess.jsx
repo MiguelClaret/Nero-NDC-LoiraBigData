@@ -154,6 +154,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
     e.preventDefault();
     setError(null);
     setTxStatus('submitting');
+    setTxHash('');
     
     try {
       console.log("Iniciando processo de registro de safra com NERO AA...");
@@ -213,9 +214,9 @@ const RegistrationProcess = ({ setCurrentPage }) => {
         const userOp = await builder.execute(HARVEST_MANAGER_ADDRESS, 0, callData);
         console.log("UserOperation enviada:", userOp.userOpHash || userOp.hash);
         const res = await client.sendUserOperation(userOp);
-        console.log("UserOperation enviada:", res.userOpHash);
+        console.log("UserOperation enviada (res.userOpHash):", res.userOpHash);
         const receipt = await res.wait();
-        console.log("Receipt:", receipt.transactionHash);
+        console.log("Receipt (receipt.transactionHash):", receipt.transactionHash);
         setTxHash(receipt.transactionHash);
         setTxStatus('confirmed');
         setRegistrationStatus({
@@ -226,11 +227,12 @@ const RegistrationProcess = ({ setCurrentPage }) => {
         });
       } catch (txError) {
         console.error("Erro na execução da transação:", txError);
+        setTxStatus('failed');
         throw new Error(`Falha na execução da transação: ${txError.message}`);
       }
       
     } catch (err) {
-      console.error("Erro no registro da safra:", err);
+      console.error("Erro no registro da safra (outer catch):", err);
       setError(err.message || "Falha ao registrar safra");
       setTxStatus('failed');
     }
@@ -249,12 +251,17 @@ const RegistrationProcess = ({ setCurrentPage }) => {
     }
   };
 
+  // Props for CropForm
+  const isProcessingProp = txStatus === 'submitting' || txStatus === 'pending';
+  const registrationCompleteProp = txStatus === 'confirmed' && !!registrationStatus?.success;
+  const transactionHashProp = txHash; // txHash is updated upon successful transaction
+
   return (
     <div className="max-w-4xl mx-auto py-8">
       <h1 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center animate-fadeIn">
         Register Your Crop
       </h1>
-
+      
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           <span className="block sm:inline">{error}</span>
@@ -270,14 +277,17 @@ const RegistrationProcess = ({ setCurrentPage }) => {
             handleLoginChange={handleInputChange} 
             handleLoginSubmit={handleStepOneSubmit} 
           />
-        )}
-        
+      )}
+      
         {currentStep === 1 && !showLogin && (
           <CropForm 
             formData={formData} 
             handleInputChange={handleInputChange} 
             handleCheckboxChange={handleCheckboxChange} 
-            handleStepOneSubmit={handleCropSubmit} 
+            handleStepOneSubmit={handleCropSubmit}
+            isProcessing={isProcessingProp}
+            registrationComplete={registrationCompleteProp}
+            transactionHash={transactionHashProp}
           />
         )}
         
@@ -296,7 +306,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
             setCurrentPage={setCurrentPage}
           />
         )}
-      </div>
+        </div>
     </div>
   );
 };

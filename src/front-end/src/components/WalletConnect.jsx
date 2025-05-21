@@ -1,38 +1,37 @@
-import React, { useState } from "react";
-import { getSigner, getAAWalletAddress, isAAWalletDeployed } from "../utils/aaUtils";
+import React, { useContext } from "react";
+import { WalletInfoContext } from "../contexts/WalletInfoContext";
 
 const WalletConnect = () => {
-  const [eoa, setEoa] = useState("");
-  const [aa, setAa] = useState("");
-  const [deployed, setDeployed] = useState(null);
+  const walletInfo = useContext(WalletInfoContext);
 
-  const connect = async () => {
-    try {
-      const signer = await getSigner();
-      const eoaAddr = await signer.getAddress();
-      const aaAddr = await getAAWalletAddress(signer);
-      const isDeployed = await isAAWalletDeployed(aaAddr);
+  const eoa = walletInfo?.eoaAddress || walletInfo?.address;
+  const aa = walletInfo?.isSmartAccount ? walletInfo?.address : walletInfo?.aaWalletAddress;
+  const isConnected = !!walletInfo?.address;
 
-      setEoa(eoaAddr);
-      setAa(aaAddr);
-      setDeployed(isDeployed);
-    } catch (err) {
-      console.error("Erro ao conectar wallet:", err);
-    }
+  const handleLogout = walletInfo?.logout;
+
+  const handleConnectClick = () => {
+    console.log("Connect button clicked - App should open WalletModal.");
   };
 
   return (
     <div className="p-4">
-      <button onClick={connect} className="bg-blue-600 text-white px-4 py-2 rounded">
-        Conectar Wallet
-      </button>
-
-      {eoa && (
-        <div className="mt-4 text-sm">
-          <p><strong>EOA:</strong> {eoa}</p>
-          <p><strong>AA Wallet:</strong> {aa}</p>
-          <p><strong>Deploy Status:</strong> {deployed ? "✅ Implantada" : "❌ Ainda não"}</p>
-        </div>
+      {!isConnected ? (
+        <button onClick={handleConnectClick} className="bg-blue-600 text-white px-4 py-2 rounded">
+          Conectar Wallet
+        </button>
+      ) : (
+        <>
+          <div className="mt-4 text-sm">
+            {eoa && <p><strong>EOA:</strong> {eoa}</p>}
+            {aa && <p><strong>AA Wallet:</strong> {aa}</p>}
+          </div>
+          {handleLogout && (
+            <button onClick={handleLogout} className="mt-2 bg-red-600 text-white px-4 py-2 rounded">
+              Desconectar
+            </button>
+          )}
+        </>
       )}
     </div>
   );
