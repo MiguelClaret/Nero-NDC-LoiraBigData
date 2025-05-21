@@ -10,7 +10,8 @@ import {
   ChevronUp,
   Leaf,
   Info,
-  RefreshCw as RefreshIcon,
+  RefreshCw as RefreshIcon
+
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import FiltersPanel from "./FiltersPanel";
@@ -52,12 +53,13 @@ const formatDate = (timestamp) => {
 };
 
 const parseDocumentation = (docString) => {
-  if (!docString || typeof docString !== "string") {
+  if (!docString || typeof docString !== 'string') {
     return {
-      location: "Unknown Location",
+      location: 'Unknown Location',
       area: 0,
-      practicesString: "",
-      sustainablePractices: [],
+      practicesString: '',
+      sustainablePractices: []
+
     };
   }
   const locationMatch = docString.match(/Location: ([^,]+, [^,]+)/);
@@ -115,7 +117,7 @@ const Marketplace = ({ walletInfo }) => {
     harvestDateBefore: null,
     cropTypes: [],
   });
-
+  
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -138,6 +140,7 @@ const Marketplace = ({ walletInfo }) => {
       setError(null);
 
       try {
+
         console.log("🌾 Connecting to NERO Chain...");
         const neroJsonRpcProvider = new ethers.providers.JsonRpcProvider(
           NERO_RPC_URL
@@ -192,6 +195,7 @@ const Marketplace = ({ walletInfo }) => {
     const formatted = listings.map((harvest) => {
       const docInfo = parseDocumentation(harvest.documentation);
       // Support both contract harvests (harvest.crop) and mock listings (harvest.cropType)
+
       const cropName = harvest.crop || harvest.cropType || "";
       const carbonCredits = calculateCarbonCredits(
         docInfo.sustainablePractices,
@@ -208,6 +212,7 @@ const Marketplace = ({ walletInfo }) => {
       return {
         id: harvest.id,
         cropType: cropName,
+
         quantity:
           typeof harvest.quantity?.toNumber === "function"
             ? harvest.quantity.toNumber()
@@ -220,6 +225,7 @@ const Marketplace = ({ walletInfo }) => {
         producerAddress: harvest.producer,
         farmerName: harvest.producer
           ? `Producer ${harvest.producer.substring(0, 6)}...`
+
           : "Unknown Producer",
         location: docInfo.location,
         area: docInfo.area,
@@ -395,6 +401,7 @@ const Marketplace = ({ walletInfo }) => {
         )}
       </div>
 
+
       <BlockchainSecurityInfo />
       <div className="bg-white rounded-lg shadow-lg p-6 mb-8 transition-all duration-300 hover:shadow-xl">
         <div className="flex items-start gap-2">
@@ -530,6 +537,16 @@ const Marketplace = ({ walletInfo }) => {
           chainName="NERO Chain"
         />
       )}
+      
+      {/* Onboarding Component */}
+      <MarketplaceOnboarding 
+        isOpen={showOnboarding} 
+        onComplete={handleOnboardingComplete} 
+      />
+      
+      {/* Marketplace How It Works Button - positioned above the general onboarding button */}
+      <MarketplaceHowItWorksButton onClick={handleHowItWorksClick} />
+
 
       {/* Onboarding Component */}
       <MarketplaceOnboarding

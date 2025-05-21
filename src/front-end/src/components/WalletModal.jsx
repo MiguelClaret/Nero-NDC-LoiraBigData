@@ -153,9 +153,9 @@ const WalletModal = ({ isOpen, onClose, onLogin }) => {
     }
 
     if (!entryPointAddress || !simpleAccountFactoryAddress) {
-      setError("Account Abstraction configuration missing (EntryPoint/Factory).");
-      setConnecting(null);
-      return;
+       setError("Account Abstraction configuration missing (EntryPoint/Factory).");
+       setConnecting(null);
+       return;
     }
 
     try {

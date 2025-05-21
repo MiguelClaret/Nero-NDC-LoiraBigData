@@ -146,17 +146,17 @@ export const parseToTokenUnits = (value, decimals = 18) => {
       const ethers = window.ethers || global.ethers;
       
       if (ethers) {
-        // Para ethers v6
-        if (typeof ethers.isAddress === 'function') {
+      // Para ethers v6
+      if (typeof ethers.isAddress === 'function') {
           const isValid = ethers.isAddress(address);
           if (!isValid) {
             console.warn("Endereço inválido (ethers v6)");
           }
           return isValid;
-        }
-        
-        // Para ethers v5
-        if (ethers.utils && typeof ethers.utils.isAddress === 'function') {
+      }
+      
+      // Para ethers v5
+      if (ethers.utils && typeof ethers.utils.isAddress === 'function') {
           const isValid = ethers.utils.isAddress(address);
           if (!isValid) {
             console.warn("Endereço inválido (ethers v5)");

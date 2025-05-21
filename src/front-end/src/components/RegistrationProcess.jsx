@@ -261,7 +261,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
       <h1 className="text-2xl md:text-3xl font-bold text-white mb-8 text-center animate-fadeIn">
         Register Your Crop
       </h1>
-
+      
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           <span className="block sm:inline">{error}</span>
@@ -277,8 +277,8 @@ const RegistrationProcess = ({ setCurrentPage }) => {
             handleLoginChange={handleInputChange} 
             handleLoginSubmit={handleStepOneSubmit} 
           />
-        )}
-        
+      )}
+      
         {currentStep === 1 && !showLogin && (
           <CropForm 
             formData={formData} 
@@ -306,7 +306,7 @@ const RegistrationProcess = ({ setCurrentPage }) => {
             setCurrentPage={setCurrentPage}
           />
         )}
-      </div>
+        </div>
     </div>
   );
 };
