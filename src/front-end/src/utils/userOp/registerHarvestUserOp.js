@@ -4,12 +4,16 @@ import HarvestManagerAbi from "../../abi/abiHarvest.json";
 import { getUserOperationClient } from "./userOpClient";
 import { getSimpleAccountBuilder } from "./userOpBuilder";
 import { CONTRACT_ADDRESSES, AA_PLATFORM_CONFIG } from "../../config/neroConfig";
+import { validatePayment, getPaymentErrorMessage } from "../paymentValidation";
 
 export const registerHarvestUserOp = async (
   signer,
   { crop, quantity, price, deliveryDate, doc, paymentType = '0' }
 ) => {
   try {
+    // Validar o pagamento antes de prosseguir
+    await validatePayment(price, paymentType);
+
     const contractAddress = CONTRACT_ADDRESSES.harvestManager;
     const client = await getUserOperationClient();
     const builder = await getSimpleAccountBuilder(signer);
@@ -24,9 +28,10 @@ export const registerHarvestUserOp = async (
       paymasterAddress: AA_PLATFORM_CONFIG.paymasterAddress,
     });
 
-    builder.setCallGasLimit(300000);
-    builder.setVerificationGasLimit(2000000);
-    builder.setPreVerificationGas(100000);
+    // Usar os limites de gas da configuração
+    builder.setCallGasLimit(AA_PLATFORM_CONFIG.defaultGasLimit);
+    builder.setVerificationGasLimit(AA_PLATFORM_CONFIG.defaultVerificationGasLimit);
+    builder.setPreVerificationGas(AA_PLATFORM_CONFIG.defaultPreVerificationGas);
 
     const contract = new ethers.Contract(contractAddress, HarvestManagerAbi);
     const calldata = contract.interface.encodeFunctionData("createHarvest", [
@@ -49,11 +54,9 @@ export const registerHarvestUserOp = async (
     console.log("✅ Transaction Hash confirmada:", receipt.transactionHash);
     return receipt.transactionHash;
   } catch (err) {
-    if (err.message && err.message.includes("AA21")) {
-      alert("O Paymaster não patrocinou a transação (AA21). Verifique saldo e configuração do paymaster.");
-    }
-    console.error("❌ Erro ao enviar UserOp:", err);
-    throw err;
+    const errorMessage = getPaymentErrorMessage(err);
+    console.error("❌ Erro ao enviar UserOp:", errorMessage);
+    throw new Error(errorMessage);
   }
 };
 
