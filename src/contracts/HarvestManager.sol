@@ -162,4 +162,39 @@ contract HarvestManager is ERC1155, BaseAccessControl {
     {
         return super.supportsInterface(interfaceId);
     }
+
+    function getAvailableHarvests() external view returns (Harvest[] memory) 
+    {
+        uint256 count = 0;
+
+        // Primeiro, contar quantas estão válidas
+        for (uint256 i = 0; i < currentHarvestId; i++) {
+            Harvest storage h = harvests[i];
+            if (
+                h.status == HarvestStatus.VALIDATED &&
+                h.pricePerUnit > 0 &&
+                h.deliveryDate > block.timestamp
+            ) {
+                count++;
+            }
+        }
+
+        // Criar array com tamanho correto
+        Harvest[] memory available = new Harvest[](count);
+        uint256 j = 0;
+
+        for (uint256 i = 0; i < currentHarvestId; i++) {
+            Harvest storage h = harvests[i];
+            if (
+                h.status == HarvestStatus.VALIDATED &&
+                h.pricePerUnit > 0 &&
+                h.deliveryDate > block.timestamp
+            ) {
+                available[j] = h;
+                j++;
+            }
+        }
+
+        return available;
+    }
 }
