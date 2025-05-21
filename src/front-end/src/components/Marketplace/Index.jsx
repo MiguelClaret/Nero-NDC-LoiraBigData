@@ -121,9 +121,6 @@ const Marketplace = ({ walletInfo }) => {
   // Onboarding state
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Onboarding state
-  const [showOnboarding, setShowOnboarding] = useState(false);
-
   const provider = usePublicClient();
   // Get the EOA signer using Wagmi's hook for connected wallet
   const { data: walletClient } = useWalletClient();
