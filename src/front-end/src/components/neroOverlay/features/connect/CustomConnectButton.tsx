@@ -36,9 +36,11 @@ const CustomConnectButton: React.FC<CustomConnectButtonProps> = ({ mode }) => {
               (!authenticationStatus || authenticationStatus === 'authenticated'),
           )
 
-          if (isConnected !== connected) {
-            setIsConnected(connected)
-          }
+          useEffect(() => {
+            if (isConnected !== connected) {
+              setIsConnected(connected)
+            }
+          }, [connected, isConnected])
 
           if (!ready) return null
           if (chain?.unsupported) {
