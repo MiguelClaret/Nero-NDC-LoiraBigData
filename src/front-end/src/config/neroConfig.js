@@ -38,12 +38,12 @@ export const CONTRACT_ADDRESSES = {
     abi: abiAgri
   },
   paymasterRpc: "https://paymaster-testnet.nerochain.io",
-  bundlerRpc: "https://bundler.service.nerochain.io"
+  bundlerRpc: "https://bundler-testnet.nerochain.io"
 };
 
   
 export const AA_PLATFORM_CONFIG = {
-    bundlerRpc: "https://bundler.service.nerochain.io",
+    bundlerRpc: "https://bundler-testnet.nerochain.io",
     paymasterRpc: "https://paymaster-testnet.nerochain.io",
     paymasterAddress: "0x5a6680dFd4a77FEea0A7be291147768EaA2414ad",
     apiKey: "47cf84d0847b40b59a241cb3ca7dbb6e",
