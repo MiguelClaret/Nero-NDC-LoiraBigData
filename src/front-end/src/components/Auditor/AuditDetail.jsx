@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Calendar, MapPin, User, Leaf, FileText, Image, Clipboard, Check, X, Trash, Calculator } from 'lucide-react';
+import { auditHarvestUserOp } from "../../utils/userOp/auditHarvestUserOp";
 
 const DocumentItem = ({ document }) => {
   return (
@@ -107,29 +108,44 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
     setIsApproving(false);
     setIsRejecting(false);
   };
-  
-  const handleSubmitApproval = () => {
-    if (!comments) {
-      alert('Please provide comments for this approval');
-      return;
-    }
-    
-    if (!carbonEstimate) {
-      alert('Please estimate the carbon credits');
-      return;
-    }
-    
-    onApprove(audit.id, comments, parseFloat(carbonEstimate));
-  };
-  
-  const handleSubmitRejection = () => {
-    if (!comments) {
-      alert('Please provide comments for this rejection');
-      return;
-    }
-    
-    onReject(audit.id, comments);
-  };
+
+const handleSubmitApproval = async () => {
+  if (!comments || !carbonEstimate) return alert("Preencha todos os campos");
+
+  try {
+    const signer = await getSigner(); // sua função existente
+    const txHash = await auditHarvestUserOp(signer, {
+      harvestId: audit.id,
+      action: "approve",
+      tco2Amount: carbonEstimate,
+      toAddress: audit.walletAddress, // ou quem deve receber os tokens
+      paymentType: "0"
+    });
+
+    console.log("Aprovação enviada. Hash:", txHash);
+    onApprove(audit.id, comments, parseFloat(carbonEstimate)); // Atualiza estado local
+  } catch (err) {
+    alert("Erro ao aprovar: " + err.message);
+  }
+};
+
+const handleSubmitRejection = async () => {
+  if (!comments) return alert("Justifique a rejeição");
+
+  try {
+    const signer = await getSigner();
+    const txHash = await auditHarvestUserOp(signer, {
+      harvestId: audit.id,
+      action: "reject",
+      paymentType: "0"
+    });
+
+    console.log("Rejeição enviada. Hash:", txHash);
+    onReject(audit.id, comments); // Atualiza estado local
+  } catch (err) {
+    alert("Erro ao rejeitar: " + err.message);
+  }
+};
   
   const calculateCarbonCredits = () => {
     const calculatedEstimate = automaticEstimate;
