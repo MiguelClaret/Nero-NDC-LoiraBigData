@@ -29,6 +29,7 @@ const SendDetail: React.FC = () => {
     clearBalance,
   } = useContext(SendContext)!
   const [estimatedGasCost, setEstimatedGasCost] = useState<string>('Calculating...')
+  const [gasCalculationTimeout, setGasCalculationTimeout] = useState(false)
   const { AAaddress, simpleAccountInstance } = useSimpleAccount()
   const { transfer } = useAAtransfer()
   const {
@@ -42,12 +43,20 @@ const SendDetail: React.FC = () => {
   useEffect(() => {
     const estimateGasCost = async () => {
       if (!recipientAddress || !balance || !AAaddress || AAaddress === '0x') {
-        setEstimatedGasCost('null')
+        setEstimatedGasCost('0.0001')
         return
       }
 
       try {
+        // Set a timeout for gas calculation (10 seconds)
+        const timeoutId = setTimeout(() => {
+          console.warn('Gas estimation timed out, using default value')
+          setEstimatedGasCost('0.001')
+          setGasCalculationTimeout(true)
+        }, 10000)
+
         if (isFreeGasMode) {
+          clearTimeout(timeoutId)
           setEstimatedGasCost('0')
           return
         }
@@ -77,10 +86,12 @@ const SendDetail: React.FC = () => {
           paymasterSelectedToken || undefined,
           paymasterModeValue,
         )
-        setEstimatedGasCost(fee)
+        
+        clearTimeout(timeoutId)
+        setEstimatedGasCost(fee || '0.001')
       } catch (error) {
         console.error('Error setting estimated gas cost:', error)
-        setEstimatedGasCost('0.0001')
+        setEstimatedGasCost('0.001') // Use a reasonable default
       }
     }
 
@@ -117,7 +128,7 @@ const SendDetail: React.FC = () => {
       )
       return result
     } catch (error) {
-      console.error('Transfer failed')
+      console.error('Transfer failed:', error)
       throw error
     }
   }
@@ -130,28 +141,37 @@ const SendDetail: React.FC = () => {
   }
 
   const amountContent = (
-    <>
-      <label className='block text-text-secondary text-1sm'>Amount</label>
-      <div className='flex items-center mt-1 mb-2'>
+    <div className="px-2">
+      <label className='block text-text-secondary text-sm mb-1'>Amount</label>
+      <div className='flex items-center mt-1 mb-3'>
         <TokenIcon
           tokenAddress={selectedToken.contractAddress}
           symbol={selectedToken.symbol}
           isNative={selectedToken.isNative}
           size='md'
-          className='mr-2'
+          className='mr-3 flex-shrink-0'
           token={selectedToken}
         />
-        <div className='flex items-center w-full'>
-          <div className='text-xl flex-1 pl-3 overflow-hidden whitespace-nowrap text-ellipsis'>
+        <div className='flex items-center w-full min-w-0'>
+          <div className='text-lg sm:text-xl flex-1 pl-2 overflow-hidden text-ellipsis whitespace-nowrap'>
             {balance} {selectedToken.symbol}
           </div>
         </div>
       </div>
-    </>
+      {gasCalculationTimeout && (
+        <div className="text-xs text-yellow-600 mb-2">
+          ⚠️ Gas estimation timed out. Using default estimate.
+        </div>
+      )}
+    </div>
   )
 
   if (!selectedToken || !balance) {
-    return null
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500">Loading transaction details...</p>
+      </div>
+    )
   }
 
   return (
@@ -163,6 +183,7 @@ const SendDetail: React.FC = () => {
       onClose={handleClose}
       onConfirm={executeTransfer}
       onReset={resetAllContexts}
+      title="Confirm Send"
     >
       {amountContent}
     </TransactionPreview>

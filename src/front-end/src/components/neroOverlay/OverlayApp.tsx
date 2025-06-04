@@ -38,7 +38,7 @@ const OverlayApp: React.FC<OverlayAppProps> = ({ mode = 'sidebar' }) => {
         <CustomConnectButton mode={mode} />
       </div>
       {isWalletPanel && (
-        <div className='fixed' style={{ left: 0, top: '100px', width: '350px' }}>
+        <div className='fixed sm:top-[100px] top-[160px]' style={{ left: 0, width: '350px' }}>
           <div className='bg-white rounded-md shadow-lg'>
             <ScreenRenderer currentScreen={currentScreen as Screen} />
           </div>
@@ -48,4 +48,4 @@ const OverlayApp: React.FC<OverlayAppProps> = ({ mode = 'sidebar' }) => {
   )
 }
 
-export default OverlayApp 
+export default OverlayApp
