@@ -24,7 +24,7 @@ import MarketplaceHowItWorksButton from "./HowItWorksButton"; // Import the new 
 
 // Import ABI and contract address
 import HarvestManagerABI from "../../abi/abiHarvest.json";
-const harvestManagerAddress = "0xEe67dd5D4291ed74279C0BC1Fa52386aA3834dba";
+const harvestManagerAddress = "0xddaAd340b0f1Ef65169Ae5E41A8b10776a75482d";
 
 // NERO Chain configuration
 const NERO_RPC_URL = "https://rpc-testnet.nerochain.io";
