@@ -170,25 +170,25 @@ const Products = () => {
   return (
     <section
       id="products"
-      className="py-16 px-8 bg-gradient-to-b from-gray-50 to-gray-100"
+      className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-gray-100"
     >
       <motion.div
-        className="text-center max-w-2xl mx-auto mb-12"
+        className="text-center max-w-2xl mx-auto mb-8 lg:mb-12"
         initial={{ opacity: 0, y: 30 }}
         animate={isVisible ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
+        <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-green-700 to-green-500 bg-clip-text text-transparent">
           Our Products
         </h2>
-        <p className="text-lg text-gray-600">
+        <p className="text-base sm:text-lg text-gray-600">
           Innovative blockchain solutions for sustainable agribusiness
         </p>
       </motion.div>
 
       <div className="max-w-[1100px] mx-auto">
         <motion.div
-          className="flex justify-center gap-3 flex-wrap mb-10 p-2 bg-white/50 backdrop-blur-sm shadow-sm rounded-md"
+          className="flex justify-center gap-2 sm:gap-3 flex-wrap mb-6 lg:mb-10 p-2 bg-white/50 backdrop-blur-sm shadow-sm rounded-md"
           initial={{ opacity: 0, y: 30 }}
           animate={isVisible ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -213,15 +213,15 @@ const Products = () => {
                 id={productId}
                 isActive={activeTab === productId}
               >
-                <div className="flex flex-row gap-8 items-center ">
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-center">
                   <motion.div
-                    className="md:w-2/5 min-w-[200px] order-1 md:order-1 py-5"
+                    className="w-full lg:w-2/5 lg:min-w-[200px] order-2 lg:order-1 py-4 lg:py-5"
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.2 }}
                   >
                     <motion.div
-                      className="w-full h-full rounded-xl overflow-hidden shadow-md bg-white"
+                      className="w-full rounded-xl overflow-hidden shadow-md bg-white"
                       style={{
                         aspectRatio: "1/1",
                         maxWidth: "280px",
@@ -233,26 +233,26 @@ const Products = () => {
                       <img
                         src={product.image}
                         alt={product.title}
-                        className="object-cover object-center transition-all duration-700 hover:scale-105"
+                        className="w-full h-full object-cover object-center transition-all duration-700 hover:scale-105"
                       />
                     </motion.div>
                   </motion.div>
 
                   {/* Content section - Right side */}
                   <motion.div
-                    className="md:w-3/5 order-1 md:order-2"
+                    className="w-full lg:w-3/5 order-1 lg:order-2 text-center lg:text-left"
                     initial={{ opacity: 0, x: 30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5, delay: 0.3 }}
                   >
-                    <h3 className="text-2xl font-bold mb-4 text-green-700">
+                    <h3 className="text-xl sm:text-2xl font-bold mb-3 lg:mb-4 text-green-700">
                       {product.title}
                     </h3>
-                    <p className="text-gray-600 mb-6">{product.description}</p>
+                    <p className="text-sm sm:text-base text-gray-600 mb-4 lg:mb-6">{product.description}</p>
                     <FeatureList features={product.features} />
                     <motion.button
                       onClick={() => navigate(`/marketplace`)}
-                      className="py-3 px-8 rounded-full font-semibold bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md hover:shadow-lg"
+                      className="py-3 px-6 sm:px-8 rounded-full font-semibold bg-gradient-to-r from-green-600 to-green-500 text-white shadow-md hover:shadow-lg w-full sm:w-auto"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >

@@ -246,6 +246,25 @@
 		"type": "function"
 	},
 	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "harvestId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "auditor",
+				"type": "address"
+			}
+		],
+		"name": "HarvestRejected",
+		"type": "event"
+	},
+	{
 		"inputs": [
 			{
 				"internalType": "address",
@@ -282,6 +301,19 @@
 			}
 		],
 		"name": "registerHarvestedAmount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "harvestId",
+				"type": "uint256"
+			}
+		],
+		"name": "rejectHarvest",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -761,6 +793,11 @@
 				"internalType": "struct HarvestManager.Harvest[]",
 				"name": "",
 				"type": "tuple[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "view",
@@ -780,6 +817,19 @@
 				"internalType": "address[]",
 				"name": "",
 				"type": "address[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getPendingHarvestIds",
+		"outputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "",
+				"type": "uint256[]"
 			}
 		],
 		"stateMutability": "view",

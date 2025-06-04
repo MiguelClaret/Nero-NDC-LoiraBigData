@@ -22,7 +22,7 @@ export const CONTRACT_ADDRESSES = {
   entryPoint: "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
   accountFactory: "0x9406Cc6185a346906296840746125a0E44976454",
   harvestManager: {
-    address: '0xEe67dd5D4291ed74279C0BC1Fa52386aA3834dba',
+    address: '0xddaAd340b0f1Ef65169Ae5E41A8b10776a75482d',
     abi: abiHarvest
   },
   tco2Token: {
@@ -47,6 +47,9 @@ export const AA_PLATFORM_CONFIG = {
     paymasterRpc: "https://paymaster-testnet.nerochain.io",
     paymasterAddress: "0x5a6680dFd4a77FEea0A7be291147768EaA2414ad",
     apiKey: "47cf84d0847b40b59a241cb3ca7dbb6e",
+    defaultGasLimit: 800000,
+    defaultVerificationGasLimit: 500000,
+    defaultPreVerificationGas: 50000
   };
 
 console.log("🔑 API Key carregada:", import.meta.env.VITE_PAYMASTER_API_KEY);
