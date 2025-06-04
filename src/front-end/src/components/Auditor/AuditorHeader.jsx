@@ -29,10 +29,6 @@ const AuditorHeader = () => {
               {auditor.pendingTasks}
             </span>
           </div>
-          
-          <div className="bg-gray-200 p-1 rounded-full">
-            <User className="h-8 w-8 text-gray-700" />
-          </div>
         </div>
       </div>
       
