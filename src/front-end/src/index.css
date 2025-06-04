@@ -17,6 +17,106 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
+/* Responsive utilities */
+.container-responsive {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    padding: 0 3rem;
+  }
+}
+
+/* Mobile-first padding and margins */
+.section-padding {
+  padding: 2rem 1rem;
+}
+
+@media (min-width: 768px) {
+  .section-padding {
+    padding: 4rem 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-padding {
+    padding: 6rem 3rem;
+  }
+}
+
+/* Better mobile scrolling */
+@media (max-width: 767px) {
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+  }
+  
+  /* Adjust text sizes for mobile */
+  h1 {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+    line-height: 1.3;
+  }
+  
+  h3 {
+    font-size: 1.5rem;
+    line-height: 1.4;
+  }
+  
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+}
+
+/* Better button spacing on mobile */
+@media (max-width: 767px) {
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  
+  .btn-group button {
+    width: 100%;
+  }
+}
+
+/* Improved modal and popup behavior on mobile */
+@media (max-width: 767px) {
+  .modal-content {
+    width: 95%;
+    max-width: 95vw;
+    margin: 1rem auto;
+  }
+  
+  .popup-content {
+    width: 90%;
+    max-width: 90vw;
+  }
 }
 
 /* Animações personalizadas */
@@ -142,4 +242,40 @@ body {
     transform: scale(1.2);
     opacity: 1;
   }
+}
+
+/* Fixed chatbot positioning */
+.agrobot-button {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 40;
+}
+
+@media (max-width: 767px) {
+  .agrobot-button {
+    bottom: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+/* Estilo para o balão de fala do chatbot */
+.speech-bubble {
+  position: relative;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  right: 1rem;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  border-right: 1px solid #e5e7eb;
+  transform: rotate(45deg);
 }

@@ -42,13 +42,13 @@ const Navbar = ({ openWalletModal, isLoggedIn, userRole, userAddress, onLogout }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/95 shadow-sm">
-      <div className="flex justify-between items-center px-8 py-4">
+      <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
         <div className="flex items-center gap-2">
           <Link to="/">
-            <img src={logoSvg || "/placeholder.svg"} alt="SeedSafe" className="h-10" />
+            <img src={logoSvg || "/placeholder.svg"} alt="SeedSafe" className="h-8 sm:h-10" />
           </Link>
           <Link to="/">
-            <span className="font-bold text-3xl">
+            <span className="font-bold text-2xl sm:text-3xl">
               Seed<em className="text-green-700 not-italic">Safe</em>
             </span>
           </Link>
@@ -58,7 +58,7 @@ const Navbar = ({ openWalletModal, isLoggedIn, userRole, userAddress, onLogout }
         {isMobileScreen && (
           <button
             onClick={toggleMobileMenu}
-            className="text-2xl p-2 focus:outline-none transition-transform duration-300"
+            className="text-xl sm:text-2xl p-2 focus:outline-none transition-transform duration-300"
             aria-label="Toggle menu"
           >
             <i
@@ -69,8 +69,8 @@ const Navbar = ({ openWalletModal, isLoggedIn, userRole, userAddress, onLogout }
 
         {/* Links de navegação e botões - visíveis em desktop */}
         {!isMobileScreen && (
-          <div className="flex items-center gap-10">
-            <div className="flex gap-10">
+          <div className="flex items-center gap-6 lg:gap-10">
+            <div className="flex gap-6 lg:gap-10">
               {location.pathname === "/" ? (
                 <>
                   <a
@@ -174,7 +174,7 @@ const Navbar = ({ openWalletModal, isLoggedIn, userRole, userAddress, onLogout }
             isMobileMenuOpen ? "scale-y-100" : "scale-y-0"
           }`}
         >
-          <div className="flex flex-col gap-4 p-4">
+          <div className="flex flex-col gap-3 sm:gap-4 p-4 sm:p-6">
             {location.pathname === "/" ? (
               <>
                 <a href="#how-it-works" className="font-medium hover:text-green-700 transition-colors" onClick={() => setIsMobileMenuOpen(false)}>

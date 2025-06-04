@@ -374,19 +374,27 @@ function AppContent() {
 
   return (
     <WalletInfoProvider value={walletContextValueForProvider}>
-      <div style={{ position: "fixed", top: 24, left: 24, zIndex: 9999 }}>
+      <div 
+        style={{ 
+          position: "fixed", 
+          top: 24, 
+          left: isMobile ? "auto" : 24,
+          right: isMobile ? 24 : "auto",
+          zIndex: 9999 
+        }}
+      >
         <OverlayProviders>
-          <OverlayApp mode="sidebar" />
+          <OverlayApp mode="sidebar" isMobile={isMobile} />
         </OverlayProviders>
       </div>
       <Router>
-        <div className="font-poppins text-slate-800 overflow-x-hidden max-w-screen">
+        <div className="font-poppins text-slate-800 overflow-x-hidden w-full min-h-screen">
           <header
             className={`${
               isMobile
-                ? "bg-gradient-to-r from-white/95 to-white/90"
-                : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
-            } pb-12 md:pb-24 relative`}
+                ? "bg-gradient-to-r from-white/95 to-white/90 px-4 pb-8"
+                : "bg-gradient-to-r from-white/95 to-white/80 bg-cover px-6 pb-12 md:pb-24"
+            } relative`}
             style={backgroundStyle}
           >
             <Navbar
@@ -413,13 +421,13 @@ function AppContent() {
               <Route
                 path="/"
                 element={
-                  <>
+                  <div className="w-full">
                     <HowItWorks />
                     <Benefits />
                     <Products />
                     <Testimonials />
                     <CTASection openWalletModal={openWalletModal} />
-                  </>
+                  </div>
                 }
               />
               <Route
@@ -428,9 +436,9 @@ function AppContent() {
                   <div
                     className={`${
                       isMobile
-                        ? "bg-gradient-to-r from-white/95 to-white/90"
-                        : "bg-gradient-to-r from-white/95 to-white/80 bg-cover"
-                    }`}
+                        ? "bg-gradient-to-r from-white/95 to-white/90 px-4"
+                        : "bg-gradient-to-r from-white/95 to-white/80 bg-cover px-6"
+                    } w-full`}
                     style={backgroundStyle}
                   >
                     <Marketplace />
@@ -441,7 +449,7 @@ function AppContent() {
                 path="/register"
                 element={
                   <RequireAuth>
-                    <div className="bg-white">
+                    <div className="bg-white w-full px-4 lg:px-6">
                       <RegistrationProcess
                         walletInfo={walletInfo}
                         setCurrentPage={setCurrentPage}
@@ -456,7 +464,9 @@ function AppContent() {
                 path="/auditor"
                 element={
                   <RequireAuth >
-                    <Auditor />
+                    <div className="w-full px-4 lg:px-6">
+                      <Auditor />
+                    </div>
                   </RequireAuth>
                 }
               />
@@ -478,9 +488,13 @@ function AppContent() {
               isOpen={showOnboarding}
               onComplete={handleOnboardingComplete}
             />
-            <OnboardingButton onClick={handleStartOnboarding} />
-            <div className="agrobot-button">
-              <ChatbotWidget />
+            <div className="fixed bottom-4 left-4 right-4 flex justify-between items-end z-50 pointer-events-none">
+              <div className="pointer-events-auto">
+                <OnboardingButton onClick={handleStartOnboarding} />
+              </div>
+              <div className="pointer-events-auto">
+                <ChatbotWidget />
+              </div>
             </div>
           </>
         )}
