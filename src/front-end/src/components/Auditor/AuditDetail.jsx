@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Calendar, MapPin, User, Leaf, FileText, Image, Clipboard, Check, X, Trash, Calculator } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, User, Leaf, FileText, Image, Clipboard, Check, X, Trash, Calculator, CheckCircle, ExternalLink } from 'lucide-react';
+import { auditHarvestUserOp } from "../../utils/userOp/auditHarvestUserOp";
+import { getSigner } from "../../utils/aaUtils";
 
 const DocumentItem = ({ document }) => {
   return (
@@ -61,6 +63,9 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [automaticEstimate, setAutomaticEstimate] = useState(0);
+  const [txHash, setTxHash] = useState('');
+  const [copyFeedback, setCopyFeedback] = useState('');
+
   
   // Calcular estimativa automática baseada nas práticas sustentáveis e área
   useEffect(() => {
@@ -107,29 +112,61 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
     setIsApproving(false);
     setIsRejecting(false);
   };
-  
-  const handleSubmitApproval = () => {
-    if (!comments) {
-      alert('Please provide comments for this approval');
-      return;
-    }
-    
-    if (!carbonEstimate) {
-      alert('Please estimate the carbon credits');
-      return;
-    }
-    
+
+const handleSubmitApproval = async () => {
+  if (!comments) {
+    alert("Please provide comments for this approval");
+    return;
+  }
+
+  if (!carbonEstimate) {
+    alert("Please estimate the carbon credits");
+    return;
+  }
+
+  try {
+    const signer = await getSigner();
+    const address = await signer.getAddress();
+
+    const hash = await auditHarvestUserOp(signer, {
+      harvestId: audit.id,
+      action: "approve",
+      tco2Amount: carbonEstimate,
+      toAddress: address,
+      paymentType: "0"
+      });
+
+      setTxHash(hash);
+
     onApprove(audit.id, comments, parseFloat(carbonEstimate));
-  };
-  
-  const handleSubmitRejection = () => {
-    if (!comments) {
-      alert('Please provide comments for this rejection');
-      return;
-    }
-    
+  } catch (error) {
+    console.error("Erro ao aprovar safra:", error);
+    alert("Erro ao aprovar safra. Verifique o console.");
+  }
+};
+
+const handleSubmitRejection = async () => {
+  if (!comments) {
+    alert("Explique o motivo da rejeição.");
+    return;
+  }
+
+  try {
+    const signer = await getSigner();
+    const hash = await auditHarvestUserOp(signer, {
+    harvestId: audit.id,
+    action: "reject",
+    paymentType: "0"
+    });
+
+    setTxHash(hash);
+
+    console.log("Safra rejeitada com sucesso!", hash);
     onReject(audit.id, comments);
-  };
+  } catch (err) {
+    alert("Erro ao rejeitar: " + err.message);
+  }
+};
   
   const calculateCarbonCredits = () => {
     const calculatedEstimate = automaticEstimate;
@@ -342,6 +379,7 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
           ))}
         </div>
       </div>
+
       
       {/* Documents */}
       <div>
@@ -353,6 +391,57 @@ const AuditDetail = ({ audit, onBack, onApprove, onReject }) => {
           ))}
         </div>
       </div>
+
+      {txHash && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center max-w-md">
+      <CheckCircle className="h-12 w-12 text-green-600 mb-4" />
+      <h3 className="text-xl font-bold text-gray-800 mb-2">Audit Successful!</h3>
+      <p className="text-gray-600 text-center mb-4">
+        The crop has been successfully audited on the blockchain.
+      </p>
+
+      <div className="w-full bg-gray-50 p-3 rounded-lg mb-4">
+        <p className="text-sm text-gray-600 mb-1">Transaction Hash:</p>
+        <div className="flex items-center gap-2">
+          <code className="text-xs bg-gray-100 p-2 rounded flex-1 text-ellipsis overflow-hidden">
+            {txHash.slice(0, 6)}...{txHash.slice(-4)}
+          </code>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard.writeText(txHash);
+              setCopyFeedback("copied");
+              setTimeout(() => setCopyFeedback(""), 2000);
+            }}
+            className="p-2 hover:bg-gray-200 rounded"
+          >
+            {copyFeedback ? <Check className="h-4 w-4" /> : <Clipboard className="h-4 w-4" />}
+          </button>
+        </div>
+        <a
+          href={`https://testnet.neroscan.io/tx/${txHash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-green-600 text-sm underline mt-2 inline-block"
+        >
+          View on Explorer
+        </a>
+      </div>
+
+      <button
+        onClick={() => {
+          setTxHash('');
+          setIsApproving(false);
+          setIsRejecting(false);
+        }}
+        className="w-full py-3 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+      >
+        Back
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 };

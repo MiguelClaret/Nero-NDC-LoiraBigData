@@ -47,6 +47,9 @@ export const AA_PLATFORM_CONFIG = {
     paymasterRpc: "https://paymaster-testnet.nerochain.io",
     paymasterAddress: "0x5a6680dFd4a77FEea0A7be291147768EaA2414ad",
     apiKey: "47cf84d0847b40b59a241cb3ca7dbb6e",
+    defaultGasLimit: 800000,
+    defaultVerificationGasLimit: 500000,
+    defaultPreVerificationGas: 50000
   };
 
 console.log("🔑 API Key carregada:", import.meta.env.VITE_PAYMASTER_API_KEY);
