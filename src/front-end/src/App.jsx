@@ -463,8 +463,16 @@ function AppContent() {
               <Route
                 path="/auditor"
                 element={
-                  <RequireAuth >
-                    <div className="w-full px-4 lg:px-6">
+
+                  <RequireAuth>
+                    <div
+                      className={`min-h-screen ${
+                        isMobile
+                          ? "bg-gradient-to-r from-white/95 to-white/90"
+                          : "bg-gradient-to-r from-white/95 to-white/80"
+                      }`}
+                      style={backgroundStyle}
+                    >
                       <Auditor />
                     </div>
                   </RequireAuth>
