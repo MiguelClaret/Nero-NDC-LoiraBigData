@@ -1,3 +1,4 @@
+from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
 from flask import Flask
@@ -18,10 +19,16 @@ from .app.models.role import Role
 
 # importa seus blueprints
 from .app.routes.users import user_bp
+from .app.routes.documents import documents_bp
+
 
 # Load environment variables from .env
 load_dotenv()
 bcrypt = Bcrypt()
+
+url = os.getenv("url_supabase")  # sua URL do projeto Supabase
+key =  os.getenv("anon") # sua anon/public key
+supabase: Client = create_client(url, key)
 
 def popular_cargos():
     standard_jobs = ['Admin', 'Auditor', 'Producer', 'Investor']
@@ -67,6 +74,7 @@ def create_app():
 
     # Registrando as rotas 
     app.register_blueprint(user_bp)
+    app.register_blueprint(documents_bp)
 
 
     return app
